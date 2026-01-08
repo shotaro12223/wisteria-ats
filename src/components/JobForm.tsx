@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Job, PayType } from "@/lib/types";
 
 type Props =
@@ -71,6 +71,14 @@ export function JobForm(props: Props) {
 
   const init = useMemo(() => initial as any, [initial]);
 
+  const mountedRef = useRef(false);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   const [v, setV] = useState<any>(() => ({
     ...init,
 
@@ -93,22 +101,23 @@ export function JobForm(props: Props) {
     access: init.access ?? "",
 
     // 給与
-    grossPay: init.grossPay ?? "", // 給与（総支給）= そのまま入れる用
-    basePayAndAllowance: init.basePayAndAllowance ?? "", // 基本給・手当
-    fixedAllowance: init.fixedAllowance ?? "", // 固定手当
-    bonus: init.bonus ?? "", // 賞与
-    raise: init.raise ?? "", // 昇給
-    fixedOvertime: init.fixedOvertime ?? "", // 固定残業代
-    overtimeHours: init.overtimeHours ?? "", // 残業時間
-    annualIncomeExample: init.annualIncomeExample ?? "", // 年収例
-    avgMonthlyWorkHours: init.avgMonthlyWorkHours ?? "", // 月々平均勤務時間
+    grossPay: init.grossPay ?? "",
+    basePayAndAllowance: init.basePayAndAllowance ?? "",
+    fixedAllowance: init.fixedAllowance ?? "",
+    bonus: init.bonus ?? "",
+    raise: init.raise ?? "",
+    fixedOvertime: init.fixedOvertime ?? "",
+    overtimeHours: init.overtimeHours ?? "",
+    annualIncomeExample: init.annualIncomeExample ?? "",
+    avgMonthlyWorkHours: init.avgMonthlyWorkHours ?? "",
 
     // 勤務時間系
-    workHours: init.workHours ?? "", // 勤務時間
-    breakTime: init.breakTime ?? "", // 休憩時間
-    avgMonthlyWorkDays: init.avgMonthlyWorkDays ?? "", // 月々平均勤務日数（=あなたの「月々平均勤務時間」と別で必要なら）
-    workDaysHoursRequired: init.workDaysHoursRequired ?? "", // 必須の勤務日数・時間の条件など
-    secondment: init.secondment ?? "", // 出向等
+    workHours: init.workHours ?? "",
+    breakTime: init.breakTime ?? "",
+    avgMonthlyWorkDays: init.avgMonthlyWorkDays ?? "",
+    workDaysHoursRequired: init.workDaysHoursRequired ?? "",
+    secondment: init.secondment ?? "",
+
     // 募集人数 / 副業
     hiringCount: init.hiringCount ?? "",
     sideJob: init.sideJob ?? "",
@@ -123,12 +132,12 @@ export function JobForm(props: Props) {
     educationExperience: init.educationExperience ?? "",
 
     // 休日休暇
-    holidays: init.holidays ?? "", // 休日休暇（まとめ）
-    annualHolidays: init.annualHolidays ?? "", // 年間休日
-    leave: init.leave ?? "", // 休暇
-    childcareLeave: init.childcareLeave ?? "", // 育児休業
+    holidays: init.holidays ?? "",
+    annualHolidays: init.annualHolidays ?? "",
+    leave: init.leave ?? "",
+    childcareLeave: init.childcareLeave ?? "",
 
-    // 試用期間（型にある分を全部）
+    // 試用期間
     probation: init.probation ?? "",
     probationPeriod: init.probationPeriod ?? "",
     probationCondition: init.probationCondition ?? "",
@@ -211,8 +220,30 @@ export function JobForm(props: Props) {
     });
   }, [initial]);
 
+  function toJob(state: any): Job {
+    const probationPayMin = toNumberOrNull(state.probationPayMinText);
+    const probationPayMax = toNumberOrNull(state.probationPayMaxText);
+
+    const out: any = { ...(compat ? props.job : props.initialValue), ...state };
+
+    delete out.probationPayMinText;
+    delete out.probationPayMaxText;
+
+    out.probationPayMin = probationPayMin;
+    out.probationPayMax = probationPayMax;
+
+    return out as Job;
+  }
+
+  // ✅ 親の setState を「描画中」に走らせないため、必ず microtask へ逃がす
   function emit(next: any) {
-    if (compat) props.onChange(next as Job);
+    if (!compat) return;
+    const payload = next as Job;
+
+    queueMicrotask(() => {
+      if (!mountedRef.current) return;
+      props.onChange(payload);
+    });
   }
 
   function setField(key: string, val: any) {
@@ -221,23 +252,6 @@ export function JobForm(props: Props) {
       if (compat) emit(toJob(next));
       return next;
     });
-  }
-
-  function toJob(state: any): Job {
-    // 数値フィールドを Job の型に合わせて変換
-    const probationPayMin = toNumberOrNull(state.probationPayMinText);
-    const probationPayMax = toNumberOrNull(state.probationPayMaxText);
-
-    const out: any = { ...(compat ? props.job : props.initialValue), ...state };
-
-    // UI用フィールドは消して、本来の数値フィールドに
-    delete out.probationPayMinText;
-    delete out.probationPayMaxText;
-
-    out.probationPayMin = probationPayMin;
-    out.probationPayMax = probationPayMax;
-
-    return out as Job;
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -832,7 +846,7 @@ export function JobForm(props: Props) {
         </div>
       </div>
 
-      {/* 11) その他（必要なときだけ） */}
+      {/* 11) その他 */}
       <div className={panelMuted()} style={{ borderColor: "var(--border)" }}>
         <div className={sectionTitle()}>その他</div>
 

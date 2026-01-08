@@ -16,6 +16,10 @@ import {
 import { listCompanies, listJobs, upsertJob } from "@/lib/storage";
 import { appendEvent } from "@/lib/events";
 
+/* =========================
+ * UI helpers
+ * ========================= */
+
 const STATUS_BADGE: Record<WorkQueueStatus, string> = {
   NG: "bg-red-100 text-red-800",
   資料待ち: "bg-orange-100 text-orange-800",
@@ -24,35 +28,6 @@ const STATUS_BADGE: Record<WorkQueueStatus, string> = {
 };
 
 const ALL_STATUSES: WorkQueueStatus[] = ["NG", "資料待ち", "媒体審査中", "停止中"];
-
-// ★「この端末で触った行」記録
-const MY_TOUCHES_KEY = "wisteria_ats_workqueue_my_touches_v1";
-type MyTouches = Record<string, { touchedAt: string }>; // key = `${jobId}:${siteKey}`
-
-function readMyTouches(): MyTouches {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw = window.localStorage.getItem(MY_TOUCHES_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw) as unknown;
-    if (!parsed || typeof parsed !== "object") return {};
-    return parsed as MyTouches;
-  } catch {
-    return {};
-  }
-}
-
-function writeMyTouches(next: MyTouches) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(MY_TOUCHES_KEY, JSON.stringify(next));
-}
-
-function markTouched(jobId: string, siteKey: string, iso: string) {
-  const key = `${jobId}:${siteKey}`;
-  const cur = readMyTouches();
-  const next: MyTouches = { ...cur, [key]: { touchedAt: iso } };
-  writeMyTouches(next);
-}
 
 function daysAgoLabel(iso?: string): string {
   if (!iso) return "-";
@@ -85,8 +60,42 @@ function chipClass(active: boolean): string {
   ].join(" ");
 }
 
-/** ===== 応募データ（手入力 / localStorage） ===== */
-type Applicant = {
+/* =========================
+ * “この端末で触った行” (localStorage)
+ * ========================= */
+
+const MY_TOUCHES_KEY = "wisteria_ats_workqueue_my_touches_v1";
+type MyTouches = Record<string, { touchedAt: string }>; // key = `${jobId}:${siteKey}`
+
+function readMyTouches(): MyTouches {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(MY_TOUCHES_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== "object") return {};
+    return parsed as MyTouches;
+  } catch {
+    return {};
+  }
+}
+
+function writeMyTouches(next: MyTouches) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(MY_TOUCHES_KEY, JSON.stringify(next));
+}
+
+function markTouched(jobId: string, siteKey: string, iso: string) {
+  const key = `${jobId}:${siteKey}`;
+  const cur = readMyTouches();
+  writeMyTouches({ ...cur, [key]: { touchedAt: iso } });
+}
+
+/* =========================
+ * 応募 (localStorage) ※当面ここで保持
+ * ========================= */
+
+type LocalApplicant = {
   id: string;
   companyId: string;
   jobId: string;
@@ -101,48 +110,46 @@ type Applicant = {
 
 const APPLICANTS_KEY = "wisteria_ats_applicants_v1";
 
-function readApplicantsAll(): Applicant[] {
+function readApplicantsAll(): LocalApplicant[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(APPLICANTS_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
-    return parsed as Applicant[];
+    return parsed as LocalApplicant[];
   } catch {
     return [];
   }
 }
 
 function applicantBadgeClass(n: number): string {
+  // 0件は赤で目立たせる運用
   if (n <= 0) return "bg-red-100 text-red-800";
   return "bg-emerald-100 text-emerald-800";
 }
 
+/* =========================
+ * Component
+ * ========================= */
+
 export default function WorkQueueClient() {
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
 
   const [jobs, setJobs] = useState<Job[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
 
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [onlyMine, setOnlyMine] = useState(false);
 
-  // ★「自分が触った行だけ」トグル（この端末 기준）
-  const [onlyMine, setOnlyMine] = useState<boolean>(false);
-
-  // ★ 応募データ
-  const [applicants, setApplicants] = useState<Applicant[]>([]);
+  const [applicants, setApplicants] = useState<LocalApplicant[]>([]);
 
   // 初回ロード（localStorage）
   useEffect(() => {
     setLoading(true);
     try {
-      const js = listJobs();
-      const cs = listCompanies();
-      setJobs(js);
-      setCompanies(cs);
-
-      // 応募データもロード
+      setJobs(listJobs());
+      setCompanies(listCompanies());
       setApplicants(readApplicantsAll());
     } finally {
       setLoading(false);
@@ -163,18 +170,13 @@ export default function WorkQueueClient() {
     return applyFilters(allRows, filters);
   }, [allRows, filters]);
 
-  // ★「自分が触った」絞り込み（クライアント側で追加）
   const filteredRows = useMemo<WorkQueueRow[]>(() => {
     if (!onlyMine) return baseFilteredRows;
-
     const touches = readMyTouches();
-    return baseFilteredRows.filter((r) => {
-      const key = `${r.jobId}:${r.siteKey}`;
-      return Boolean(touches[key]);
-    });
+    return baseFilteredRows.filter((r) => Boolean(touches[`${r.jobId}:${r.siteKey}`]));
   }, [baseFilteredRows, onlyMine]);
 
-  // ★ 応募数インデックス（jobId:siteKey -> count）
+  // 応募数 index（jobId:siteKey -> count）
   const applicantCountByRow = useMemo(() => {
     const map = new Map<string, number>();
     for (const a of applicants) {
@@ -190,26 +192,18 @@ export default function WorkQueueClient() {
 
   const summary = useMemo(() => {
     const total = filteredRows.length;
-    const ng = filteredRows.filter((r: WorkQueueRow) => r.status === "NG").length;
+    const ng = filteredRows.filter((r) => r.status === "NG").length;
 
-    // staleDays 欠損は集計除外
-    const stale7 = filteredRows.filter(
-      (r: WorkQueueRow) => r.staleDays != null && r.staleDays >= 7
-    ).length;
+    const stale7 = filteredRows.filter((r) => r.staleDays != null && r.staleDays >= 7).length;
+    const rpo7 = filteredRows.filter((r) => r.rpoTouchedDays != null && r.rpoTouchedDays >= 7).length;
 
-    // rpoTouchedDays 欠損は集計除外
-    const rpo7 = filteredRows.filter(
-      (r: WorkQueueRow) => r.rpoTouchedDays != null && r.rpoTouchedDays >= 7
-    ).length;
-
-    // ★ 応募0件（この行=この媒体への応募がゼロ）
     const noApps = filteredRows.filter((r) => getApplicantCount(r) === 0).length;
 
     return { total, ng, stale7, rpo7, noApps };
   }, [filteredRows, applicantCountByRow]);
 
   function updateFilter<K extends keyof Filters>(k: K, v: Filters[K]) {
-    setFilters((prev: Filters) => ({ ...prev, [k]: v }));
+    setFilters((prev) => ({ ...prev, [k]: v }));
   }
 
   function resetFilters() {
@@ -224,8 +218,8 @@ export default function WorkQueueClient() {
   function saveNote(row: WorkQueueRow, note: string) {
     const nowISO = new Date().toISOString();
 
-    setJobs((prev: Job[]) => {
-      const next = prev.map((j: Job) => {
+    setJobs((prev) => {
+      const next = prev.map((j) => {
         if (j.id !== row.jobId) return j;
 
         const siteStatus = j.siteStatus ?? {};
@@ -233,12 +227,9 @@ export default function WorkQueueClient() {
 
         const nextState: JobSiteState = {
           status: (cur?.status ?? row.status) as any,
-
-          // ★ 仕様：媒体更新日（updatedAt）は「媒体ステータス変更時のみ更新」
+          // 仕様：媒体更新日は「媒体ステータス変更時のみ更新」
           updatedAt: cur?.updatedAt ?? row.mediaUpdatedAtISO,
-
           note,
-
           // RPO更新はメモ保存で更新（表示/フィルタ用）
           rpoLastTouchedAt: nowISO,
         };
@@ -247,17 +238,14 @@ export default function WorkQueueClient() {
           ...j,
           siteStatus: {
             ...siteStatus,
-            [row.siteKey]: {
-              ...cur,
-              ...nextState,
-            },
+            [row.siteKey]: { ...cur, ...nextState },
           },
         };
 
-        // ★ touch記録
+        // touch記録（端末基準）
         markTouched(j.id, row.siteKey, nowISO);
 
-        // ★ イベントログ（7: 月次サマリ用）
+        // イベントログ（運用の月次サマリ等）
         appendEvent({
           type: "NOTE_SAVE",
           at: nowISO,
@@ -274,28 +262,20 @@ export default function WorkQueueClient() {
     });
   }
 
-  const tableRows = useMemo<WorkQueueRow[]>(() => {
-    return sortRows(filteredRows);
-  }, [filteredRows]);
+  const tableRows = useMemo(() => sortRows(filteredRows), [filteredRows]);
 
   // ===== Quick filters =====
   function setQuickStale(threshold: Filters["staleThreshold"]) {
     updateFilter("staleThreshold", threshold);
   }
-
   function setQuickStatusesAll() {
     updateFilter("statuses", ALL_STATUSES);
   }
-
   function clearSites() {
     updateFilter("sites", []);
   }
-
   function toggleRpo7Untouched() {
-    updateFilter(
-      "rpoThreshold",
-      filters.rpoThreshold === "7PLUS_UNTOUCHED" ? "ALL" : "7PLUS_UNTOUCHED"
-    );
+    updateFilter("rpoThreshold", filters.rpoThreshold === "7PLUS_UNTOUCHED" ? "ALL" : "7PLUS_UNTOUCHED");
   }
 
   const isAllStale = filters.staleThreshold === "ALL";
@@ -307,7 +287,6 @@ export default function WorkQueueClient() {
     filters.statuses.length === ALL_STATUSES.length;
 
   const hasNoSiteFilter = filters.sites.length === 0;
-
   const isRpo7Untouched = filters.rpoThreshold === "7PLUS_UNTOUCHED";
 
   return (
@@ -315,91 +294,51 @@ export default function WorkQueueClient() {
       {/* Quick Filters */}
       <div className="rounded-xl border bg-white p-3 shadow-sm">
         <div className="flex flex-wrap items-center gap-2">
-          <div className="text-xs font-medium text-gray-700 mr-2">クイック</div>
+          <div className="mr-2 text-xs font-medium text-gray-700">クイック</div>
 
-          <button
-            type="button"
-            className={chipClass(isAllStale)}
-            onClick={() => setQuickStale("ALL")}
-            title="滞留条件を外します（まず全件見える）"
-          >
+          <button type="button" className={chipClass(isAllStale)} onClick={() => setQuickStale("ALL")}>
             滞留: すべて
           </button>
-          <button
-            type="button"
-            className={chipClass(is3Plus)}
-            onClick={() => setQuickStale("3PLUS")}
-            title="3日以上の滞留だけ"
-          >
+          <button type="button" className={chipClass(is3Plus)} onClick={() => setQuickStale("3PLUS")}>
             滞留: 3日+
           </button>
-          <button
-            type="button"
-            className={chipClass(is7Plus)}
-            onClick={() => setQuickStale("7PLUS")}
-            title="7日以上の滞留だけ"
-          >
+          <button type="button" className={chipClass(is7Plus)} onClick={() => setQuickStale("7PLUS")}>
             滞留: 7日+
           </button>
 
           <div className="mx-2 h-4 w-px bg-gray-200" />
 
-          <button
-            type="button"
-            className={chipClass(isRpo7Untouched)}
-            onClick={toggleRpo7Untouched}
-            title="RPO更新が7日以上ない行だけに絞り込みます"
-          >
+          <button type="button" className={chipClass(isRpo7Untouched)} onClick={toggleRpo7Untouched}>
             RPO: 7日触ってない
           </button>
 
           <div className="mx-2 h-4 w-px bg-gray-200" />
 
-          <button
-            type="button"
-            className={chipClass(hasAllStatuses)}
-            onClick={setQuickStatusesAll}
-            title="要対応ステータス（NG/資料待ち/媒体審査中/停止中）を全部ON"
-          >
+          <button type="button" className={chipClass(hasAllStatuses)} onClick={setQuickStatusesAll}>
             状態: 要対応ALL
           </button>
 
           <div className="mx-2 h-4 w-px bg-gray-200" />
 
-          <button
-            type="button"
-            className={chipClass(hasNoSiteFilter)}
-            onClick={clearSites}
-            title="媒体フィルタを解除（全媒体）"
-          >
+          <button type="button" className={chipClass(hasNoSiteFilter)} onClick={clearSites}>
             媒体: 全て
           </button>
 
           <div className="mx-2 h-4 w-px bg-gray-200" />
 
-          <button
-            type="button"
-            className={chipClass(onlyMine)}
-            onClick={() => setOnlyMine((v) => !v)}
-            title="この端末で最後に触った行だけに絞り込みます（ログイン未導入のため端末基準）"
-          >
+          <button type="button" className={chipClass(onlyMine)} onClick={() => setOnlyMine((v) => !v)}>
             自分が触った
           </button>
 
           <div className="ml-auto">
-            <button
-              className="rounded-md border px-3 py-2 text-sm hover:bg-gray-50"
-              onClick={resetFilters}
-              type="button"
-              title="初期状態に戻す"
-            >
+            <button className="rounded-md border px-3 py-2 text-sm hover:bg-gray-50" onClick={resetFilters} type="button">
               リセット
             </button>
           </div>
         </div>
 
         <div className="mt-2 text-[11px] text-gray-500">
-          ※「自分が触った」は“このブラウザで触った履歴”で判定します（ログイン未導入のため）。チーム運用で担当者ごとにPCが分かれていれば十分使えます。
+          ※「自分が触った」は“このブラウザで触った履歴”で判定します（ログイン未導入のため）。
         </div>
       </div>
 
@@ -427,7 +366,7 @@ export default function WorkQueueClient() {
                 updateFilter("sites", selected);
               }}
             >
-              {siteOptions.map((s: string) => (
+              {siteOptions.map((s) => (
                 <option key={s} value={s}>
                   {s}
                 </option>
@@ -439,18 +378,14 @@ export default function WorkQueueClient() {
           <div className="flex flex-col gap-1">
             <label className="text-xs text-gray-600">状態</label>
             <div className="flex flex-wrap gap-2">
-              {(ALL_STATUSES as WorkQueueStatus[]).map((s: WorkQueueStatus) => {
+              {ALL_STATUSES.map((s) => {
                 const on = filters.statuses.includes(s);
                 return (
                   <button
                     key={s}
-                    className={`rounded-full border px-3 py-1 text-xs ${
-                      on ? "bg-gray-900 text-white" : "bg-white text-gray-800"
-                    }`}
+                    className={`rounded-full border px-3 py-1 text-xs ${on ? "bg-gray-900 text-white" : "bg-white text-gray-800"}`}
                     onClick={() => {
-                      const next = on
-                        ? filters.statuses.filter((x: WorkQueueStatus) => x !== s)
-                        : [...filters.statuses, s];
+                      const next = on ? filters.statuses.filter((x) => x !== s) : [...filters.statuses, s];
                       updateFilter("statuses", next);
                     }}
                     type="button"
@@ -467,9 +402,7 @@ export default function WorkQueueClient() {
             <select
               className="rounded-md border px-2 py-2 text-sm"
               value={filters.staleThreshold}
-              onChange={(e) =>
-                updateFilter("staleThreshold", e.target.value as Filters["staleThreshold"])
-              }
+              onChange={(e) => updateFilter("staleThreshold", e.target.value as Filters["staleThreshold"])}
             >
               <option value="ALL">全て</option>
               <option value="3PLUS">3日以上</option>
@@ -526,43 +459,26 @@ export default function WorkQueueClient() {
               </tr>
             </thead>
             <tbody>
-              {tableRows.map((r: WorkQueueRow) => {
+              {tableRows.map((r) => {
                 const appCount = getApplicantCount(r);
                 return (
                   <tr key={`${r.jobId}:${r.siteKey}`} className="text-sm">
                     <td className="border-b px-3 py-2">
-                      {r.staleDays == null ? (
-                        <span className="text-gray-400">-</span>
-                      ) : (
-                        <span className={staleClass(r.staleDays)}>{r.staleDays}日</span>
-                      )}
+                      {r.staleDays == null ? <span className="text-gray-400">-</span> : <span className={staleClass(r.staleDays)}>{r.staleDays}日</span>}
                     </td>
 
                     <td className="border-b px-3 py-2">
-                      {r.rpoTouchedDays == null ? (
-                        <span className="text-gray-400">-</span>
-                      ) : (
-                        <span className={rpoClass(r.rpoTouchedDays)}>{r.rpoTouchedDays}日</span>
-                      )}
+                      {r.rpoTouchedDays == null ? <span className="text-gray-400">-</span> : <span className={rpoClass(r.rpoTouchedDays)}>{r.rpoTouchedDays}日</span>}
                     </td>
 
-                    {/* ★応募 */}
                     <td className="border-b px-3 py-2">
-                      <span
-                        className={[
-                          "inline-flex items-center rounded-full px-2 py-1 text-xs",
-                          applicantBadgeClass(appCount),
-                        ].join(" ")}
-                        title="この媒体への応募件数（手入力データ）"
-                      >
+                      <span className={["inline-flex items-center rounded-full px-2 py-1 text-xs", applicantBadgeClass(appCount)].join(" ")}>
                         {appCount}
                       </span>
                     </td>
 
                     <td className="border-b px-3 py-2">
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-1 text-xs ${STATUS_BADGE[r.status]}`}
-                      >
+                      <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs ${STATUS_BADGE[r.status]}`}>
                         {r.status}
                       </span>
                     </td>
@@ -579,10 +495,7 @@ export default function WorkQueueClient() {
 
                     <td className="border-b px-3 py-2">
                       {r.companyId ? (
-                        <a
-                          className="text-blue-700 hover:underline"
-                          href={`/companies/${r.companyId}/jobs/${r.jobId}`}
-                        >
+                        <a className="text-blue-700 hover:underline" href={`/companies/${r.companyId}/jobs/${r.jobId}`}>
                           {r.jobTitle}
                         </a>
                       ) : (
@@ -599,53 +512,25 @@ export default function WorkQueueClient() {
                         placeholder="例）12/26までに条件確認を送る"
                         onBlur={(e) => saveNote(r, e.target.value)}
                         onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            (e.target as HTMLInputElement).blur();
-                          }
+                          if (e.key === "Enter") (e.target as HTMLInputElement).blur();
                         }}
                       />
                     </td>
 
                     <td className="border-b px-3 py-2 text-xs text-gray-700">
                       <div>媒体更新：{daysAgoLabel(r.mediaUpdatedAtISO)}</div>
-                      {r.rpoLastTouchedAtISO ? (
-                        <div>RPO更新：{daysAgoLabel(r.rpoLastTouchedAtISO)}</div>
-                      ) : (
-                        <div className="text-gray-400">RPO更新：-</div>
-                      )}
+                      {r.rpoLastTouchedAtISO ? <div>RPO更新：{daysAgoLabel(r.rpoLastTouchedAtISO)}</div> : <div className="text-gray-400">RPO更新：-</div>}
                     </td>
 
                     <td className="border-b px-3 py-2">
                       <div className="flex gap-2">
-                        <a
-                          className="rounded-md border px-2 py-1 text-xs hover:bg-gray-50"
-                          href={
-                            r.companyId
-                              ? `/companies/${r.companyId}/jobs/${r.jobId}`
-                              : `/jobs/${r.jobId}`
-                          }
-                        >
+                        <a className="rounded-md border px-2 py-1 text-xs hover:bg-gray-50" href={r.companyId ? `/companies/${r.companyId}/jobs/${r.jobId}` : `/jobs/${r.jobId}`}>
                           詳細
                         </a>
-                        <a
-                          className="rounded-md border px-2 py-1 text-xs hover:bg-gray-50"
-                          href={
-                            r.companyId
-                              ? `/companies/${r.companyId}/jobs/${r.jobId}/outputs`
-                              : `/jobs/${r.jobId}`
-                          }
-                        >
+                        <a className="rounded-md border px-2 py-1 text-xs hover:bg-gray-50" href={r.companyId ? `/companies/${r.companyId}/jobs/${r.jobId}/outputs` : `/jobs/${r.jobId}`}>
                           出力
                         </a>
-                        {/* ★応募入力へ */}
-                        <a
-                          className="rounded-md border px-2 py-1 text-xs hover:bg-gray-50"
-                          href={
-                            r.companyId
-                              ? `/companies/${r.companyId}/jobs/${r.jobId}/data`
-                              : `/jobs/${r.jobId}`
-                          }
-                        >
+                        <a className="rounded-md border px-2 py-1 text-xs hover:bg-gray-50" href={r.companyId ? `/companies/${r.companyId}/jobs/${r.jobId}/data` : `/jobs/${r.jobId}`}>
                           データ
                         </a>
                       </div>

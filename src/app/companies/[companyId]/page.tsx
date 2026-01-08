@@ -75,7 +75,6 @@ function rowToCompany(r: CompanyRow): Company {
 export default function CompanyMyPage() {
   const params = useParams();
 
-  // ✅ paramsが未解決の瞬間があるので、string化＋空チェック
   const companyId = useMemo(() => {
     const raw = (params as any)?.companyId;
     if (raw === undefined || raw === null) return "";
@@ -85,10 +84,7 @@ export default function CompanyMyPage() {
   const [company, setCompany] = useState<Company | null>(null);
   const [notFound, setNotFound] = useState(false);
 
-  const [reloadKey, setReloadKey] = useState(0);
-
   const [migratedCount] = useState(0); // Supabase運用なので常に0
-
   const [openCompanyForm, setOpenCompanyForm] = useState(false);
 
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
@@ -116,14 +112,20 @@ export default function CompanyMyPage() {
   async function loadCompanyAndJobs(cid: string) {
     setErrorMessage("");
 
-    // company
-    const cRes = await fetch(`/api/debug/companies/${encodeURIComponent(cid)}`, { cache: "no-store" });
+    // 会社
+    const cRes = await fetch(`/api/companies/${encodeURIComponent(cid)}`, {
+      cache: "no-store",
+    });
     const cJson = (await cRes.json()) as CompanyGetRes;
 
     if (!cRes.ok || !cJson.ok) {
       setCompany(null);
       setNotFound(false);
-      setErrorMessage(!cJson.ok ? cJson.error.message : `会社取得に失敗しました (status: ${cRes.status})`);
+      setErrorMessage(
+        !cJson.ok
+          ? cJson.error.message
+          : `会社取得に失敗しました (status: ${cRes.status})`
+      );
       return;
     }
 
@@ -138,8 +140,11 @@ export default function CompanyMyPage() {
     setOpenCompanyForm(false);
     setSaveStatus("idle");
 
-    // jobs
-    const jRes = await fetch(`/api/debug/jobs?companyId=${encodeURIComponent(cid)}`, { cache: "no-store" });
+    // 求人
+    const jRes = await fetch(
+      `/api/jobs?companyId=${encodeURIComponent(cid)}`,
+      { cache: "no-store" }
+    );
     const jJson = (await jRes.json()) as JobsGetRes;
 
     if (!jRes.ok || !jJson.ok) {
@@ -162,13 +167,12 @@ export default function CompanyMyPage() {
     setJobs(nextJobs);
   }
 
-  // ✅ companyIdが空の間は走らせない
+  // ✅ companyId が確定したら1回だけ読み込む（ループ防止）
   useEffect(() => {
     if (!companyId) return;
-    void reloadKey;
     void loadCompanyAndJobs(companyId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [companyId, reloadKey]);
+  }, [companyId]);
 
   async function handleSave(next: Company) {
     if (!companyId) return;
@@ -182,7 +186,7 @@ export default function CompanyMyPage() {
         throw new Error("会社名が未入力です");
       }
 
-      const res = await fetch(`/api/debug/companies/${encodeURIComponent(companyId)}`, {
+      const res = await fetch(`/api/companies/${encodeURIComponent(companyId)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         cache: "no-store",
@@ -192,13 +196,17 @@ export default function CompanyMyPage() {
       const json = (await res.json()) as CompanyPatchRes;
 
       if (!res.ok || !json.ok) {
-        const msg = !json.ok ? json.error.message : `保存に失敗しました (status: ${res.status})`;
+        const msg = !json.ok
+          ? json.error.message
+          : `保存に失敗しました (status: ${res.status})`;
         throw new Error(msg);
       }
 
       setCompany(rowToCompany(json.company));
-      setReloadKey((k) => k + 1);
       showSavedOnce();
+
+      // ✅ 保存後に最新を再取得（jobsも含めて整合）
+      void loadCompanyAndJobs(companyId);
     } catch (e) {
       setSaveStatus("error");
       setErrorMessage(e instanceof Error ? e.message : "保存に失敗しました");
@@ -206,10 +214,11 @@ export default function CompanyMyPage() {
   }
 
   function handleJobsChanged() {
-    setReloadKey((k) => k + 1);
+    if (!companyId) return;
+    // ✅ 削除後などはここで再取得
+    void loadCompanyAndJobs(companyId);
   }
 
-  // ✅ companyIdが空の瞬間の表示
   if (!companyId) {
     return (
       <main className="space-y-6">
@@ -239,7 +248,9 @@ export default function CompanyMyPage() {
       <main className="space-y-6">
         <div className="cv-panel p-6 text-sm text-slate-600">
           読み込み中...
-          {errorMessage ? <div className="mt-2 text-xs text-red-600">{errorMessage}</div> : null}
+          {errorMessage ? (
+            <div className="mt-2 text-xs text-red-600">{errorMessage}</div>
+          ) : null}
         </div>
       </main>
     );
@@ -247,7 +258,6 @@ export default function CompanyMyPage() {
 
   return (
     <main className="space-y-6">
-      {/* Sticky header (unified) */}
       <div
         className="sticky top-0 z-30 rounded-2xl border bg-white/85 p-4 backdrop-blur"
         style={{ borderColor: "var(--border)" }}
@@ -281,7 +291,6 @@ export default function CompanyMyPage() {
           </div>
         </div>
 
-        {/* mini meta row */}
         <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
           <span className="rounded-full border bg-white px-3 py-1" style={{ borderColor: "var(--border)" }}>
             CompanyID: <span className="font-medium text-slate-700">{companyId}</span>
@@ -306,7 +315,6 @@ export default function CompanyMyPage() {
         </div>
       ) : null}
 
-      {/* Company profile */}
       <section className="cv-panel overflow-hidden">
         <div className="border-b px-5 py-4" style={{ borderColor: "var(--border)" }}>
           <div className="flex items-start justify-between gap-4">
@@ -358,16 +366,12 @@ export default function CompanyMyPage() {
                 <button type="button" className="cv-btn-primary" onClick={() => setOpenCompanyForm(true)}>
                   今すぐ編集する
                 </button>
-                <Link href="/companies/new" className="cv-btn-secondary">
-                  + 会社を追加
-                </Link>
               </div>
             </div>
           )}
         </div>
       </section>
 
-      {/* Jobs */}
       <section className="cv-panel overflow-hidden">
         <div className="border-b px-5 py-4" style={{ borderColor: "var(--border)" }}>
           <div className="flex items-start justify-between gap-4">

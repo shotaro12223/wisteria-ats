@@ -1,185 +1,215 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-import type { Job } from "@/lib/types";
-import { newJobSkeleton, upsertJob } from "@/lib/storage";
-import { getCompany } from "@/lib/companyStorage";
+import type { Job, JobSite } from "@/lib/types";
+import { SITE_TEMPLATES, JOB_SITES } from "@/lib/templates";
+import { getTemplateFieldValue } from "@/lib/render";
+
 import { JobForm } from "@/components/JobForm";
+import { TemplateSelector } from "@/components/TemplateSelector";
 
-export default function NewJobUnderCompanyPage() {
-  const params = useParams<{ companyId: string }>();
+type OutputItem = { label: string; value: string };
+
+type CompanyGetRes =
+  | { ok: true; company: { id: string; company_name: string; created_at: string; updated_at: string } | null }
+  | { ok: false; error: { message: string } };
+
+type JobsCreateRes =
+  | { ok: true; job: { id: string; company_id: string; created_at: string; updated_at: string } }
+  | { ok: false; error: { message: string } };
+
+function panel() {
+  return "cv-panel p-6";
+}
+
+function outputItemBox(copied: boolean) {
+  return [
+    "rounded-2xl border bg-white p-4 text-sm shadow-sm",
+    copied ? "border-emerald-300 bg-emerald-50" : "bg-white",
+  ].join(" ");
+}
+
+export default function CompanyNewJobPage() {
+  const params = useParams();
   const router = useRouter();
+  const companyId = String((params as any)?.companyId ?? "");
 
-  const companyId = useMemo(() => String(params.companyId), [params.companyId]);
-  const company = useMemo(() => getCompany(companyId), [companyId]);
+  const [companyName, setCompanyName] = useState<string>("");
 
-  const [job, setJob] = useState<Job | null>(null);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saved">("idle");
+  const [job, setJob] = useState<Job>(() => {
+    const now = new Date().toISOString();
+    return {
+      id: "",
+      companyId,
+      companyName: "",
+      jobTitle: "",
+      createdAt: now,
+      updatedAt: now,
+    } as any;
+  });
 
+  const [site, setSite] = useState<JobSite>("採用係長");
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // companyId を job に反映
   useEffect(() => {
-    if (!company) return;
+    if (!companyId) return;
+    setJob((prev) => ({ ...prev, companyId }));
+  }, [companyId]);
 
-    const j = newJobSkeleton();
-    j.companyId = companyId;
-    j.companyName = company.companyName;
+  // ✅ 会社名を Supabase(API) から取得
+  useEffect(() => {
+    if (!companyId) return;
 
-    setJob(j);
-  }, [companyId, company]);
+    (async () => {
+      const res = await fetch(`/api/companies/${encodeURIComponent(companyId)}`, { cache: "no-store" });
+      const json = (await res.json()) as CompanyGetRes;
 
-  function handleSave() {
-    if (!job || !company) return;
+      if (!res.ok || !json.ok || !json.company) {
+        setCompanyName("");
+        return;
+      }
 
-    if (String(job.jobTitle || "").trim().length === 0) {
+      setCompanyName(String(json.company.company_name ?? ""));
+    })();
+  }, [companyId]);
+
+  const template = useMemo(() => SITE_TEMPLATES.find((t) => t.site === site)!, [site]);
+
+  const outputs: OutputItem[] = useMemo(() => {
+    return template.fields
+      .map((f) => {
+        const v = getTemplateFieldValue(job, f);
+        if (!v || v.trim().length === 0) return null;
+        return { label: f.label, value: v };
+      })
+      .filter(Boolean) as OutputItem[];
+  }, [job, template]);
+
+  function copy(text: string, key: string) {
+    navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    window.setTimeout(() => setCopiedKey(null), 1200);
+  }
+
+  async function onSave() {
+    if (!companyId) {
+      alert("companyId が取得できませんでした。会社ページから求人追加してください。");
+      return;
+    }
+
+    const title = String((job as any).jobTitle ?? "").trim();
+    if (!title) {
       alert("職種を入力してください。");
       return;
     }
 
-    const now = new Date().toISOString();
+    setSaving(true);
+    try {
+      const res = await fetch("/api/jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({
+          companyId,
+          // ✅ localStorageじゃなく、APIで取った会社名を使う
+          companyName: (job as any).companyName || companyName || "",
+          jobTitle: title,
+          employmentType: (job as any).employmentType ?? "",
+          siteStatus: (job as any).siteStatus ?? null,
+        }),
+      });
 
-    const toSave: Job = {
-      ...job,
-      companyId,
-      companyName: job.companyName || company.companyName,
-      createdAt: job.createdAt || now,
-      updatedAt: now,
-    };
+      const json = (await res.json()) as JobsCreateRes;
 
-    upsertJob(toSave);
-    setSaveStatus("saved");
-    router.push(`/companies/${companyId}/jobs/${toSave.id}`);
-  }
+      if (!res.ok || !json.ok) {
+        const msg = !json.ok ? json.error.message : `保存に失敗しました (status: ${res.status})`;
+        throw new Error(msg);
+      }
 
-  if (!company) {
-    return (
-      <main className="space-y-6">
-        <div className="cv-panel p-8">
-          <h1 className="text-lg font-semibold text-slate-900">会社が見つかりません</h1>
-          <p className="mt-2 text-sm text-slate-600">会社一覧から選び直してください。</p>
-
-          <div className="mt-5">
-            <Link href="/companies" className="cv-btn-secondary">
-              ← 会社一覧に戻る
-            </Link>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  if (!job) {
-    return (
-      <main className="space-y-6">
-        <div className="cv-panel p-6 text-sm text-slate-600">読み込み中...</div>
-      </main>
-    );
+      router.push(`/companies/${companyId}/jobs/${json.job.id}`);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "保存に失敗しました");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
-    <main className="space-y-6">
-      {/* Unified sticky header */}
-      <div
-        className="sticky top-0 z-30 rounded-2xl border bg-white/85 p-4 backdrop-blur"
-        style={{ borderColor: "var(--border)" }}
-      >
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 text-sm">
-              <Link href="/companies" className="cv-link">
-                会社一覧
-              </Link>
-              <span className="text-slate-300">/</span>
-              <Link href={`/companies/${companyId}`} className="cv-link">
-                {company.companyName || "会社"}
-              </Link>
-              <span className="text-slate-300">/</span>
-              <span className="truncate font-semibold text-slate-900">求人を追加</span>
-            </div>
-
-            <div className="mt-1 text-xs text-slate-500">
-              必須：職種（未入力だと作成できません）
-            </div>
-
-            <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
-              {saveStatus === "saved" ? <span className="cv-badge">保存済み</span> : null}
-
-              <span
-                className="rounded-full border bg-white px-3 py-1"
-                style={{ borderColor: "var(--border)" }}
-              >
-                CompanyID: <span className="font-medium text-slate-700">{companyId}</span>
-              </span>
-
-              <Link href="/" className="cv-link">
-                Home
-              </Link>
-            </div>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-2">
-            <button type="button" className="cv-btn-secondary" onClick={() => router.back()}>
-              戻る
-            </button>
-            <button type="button" className="cv-btn-primary" onClick={handleSave}>
-              保存して作成
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Breadcrumb back */}
-      <div className="cv-panel p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <Link href={`/companies/${companyId}`} className="cv-link text-sm">
-            ← 会社マイページに戻る
-          </Link>
-
-          <div className="text-[11px] text-slate-500">
-            迷ったら：会社 → 求人 → 出力 → データ → 分析
-          </div>
-        </div>
-      </div>
-
-      {/* Form card */}
-      <div className="cv-panel p-6">
-        <div className="mb-5 flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="text-sm font-semibold text-slate-900">求人情報</div>
-            <div className="mt-1 text-xs text-slate-500">
-              入力して保存すると、求人詳細ページへ移動します
-            </div>
-          </div>
-
-          <button type="button" className="cv-btn-primary" onClick={handleSave}>
-            保存して作成
+    <main className="mx-auto max-w-7xl space-y-6 p-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-semibold">求人追加</h1>
+        <div className="flex items-center gap-2">
+          <button className="cv-btn-secondary" onClick={() => router.back()} disabled={saving}>
+            戻る
+          </button>
+          <button className="cv-btn-primary" onClick={onSave} disabled={saving}>
+            {saving ? "保存中…" : "保存して開く"}
           </button>
         </div>
-
-        {/* NOTE: JobForm API = job / onChange */}
-        <JobForm job={job} onChange={setJob} />
       </div>
 
-      {/* Bottom action bar */}
-      <div
-        className="sticky bottom-0 z-20 rounded-2xl border bg-white/85 p-4 backdrop-blur"
-        style={{ borderColor: "var(--border)" }}
-      >
-        <div className="flex items-center justify-between gap-4">
-          <div className="text-xs text-slate-500">
-            職種が未入力の場合は作成できません（必須）
-          </div>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <section className={panel()}>
+          <div className="space-y-4">
+            <div>
+              <div className="text-sm font-semibold text-slate-900">求人情報</div>
+              <div className="mt-1 text-xs text-slate-500">入力内容は右の「項目別コピー」に反映されます</div>
+            </div>
 
-          <div className="flex items-center gap-2">
-            <button type="button" className="cv-btn-secondary" onClick={() => router.back()}>
-              戻る
-            </button>
-            <button type="button" className="cv-btn-primary" onClick={handleSave}>
-              保存して作成
-            </button>
+            <div className="h-px w-full bg-slate-100" />
+
+            <JobForm job={job} onChange={setJob} />
           </div>
-        </div>
+        </section>
+
+        <section className={panel()}>
+          <div className="space-y-4">
+            <div>
+              <div className="text-sm font-semibold text-slate-900">出力（項目別コピー）</div>
+              <div className="mt-1 text-xs text-slate-500">媒体を選ぶと、その媒体の項目順で表示されます</div>
+            </div>
+
+            <div className="h-px w-full bg-slate-100" />
+
+            <div>
+              <div className="mb-2 text-xs font-semibold text-slate-600">求人媒体</div>
+              <TemplateSelector value={site} options={JOB_SITES} onChange={setSite} />
+            </div>
+
+            <div className="space-y-3">
+              {outputs.length === 0 ? (
+                <div
+                  className="rounded-2xl border bg-[var(--surface-muted)] p-4 text-sm text-slate-600"
+                  style={{ borderColor: "var(--border)" }}
+                >
+                  入力すると、ここにコピー用テキストが表示されます
+                </div>
+              ) : (
+                outputs.map((o) => {
+                  const key = `${site}-${o.label}`;
+                  const copied = copiedKey === key;
+
+                  return (
+                    <div key={key} className={outputItemBox(copied)} style={{ borderColor: copied ? undefined : "var(--border)" }}>
+                      <div className="mb-2 flex items-center justify-between gap-3">
+                        <div className="min-w-0 text-xs font-semibold text-slate-600">{o.label}</div>
+                        <button className="shrink-0 text-xs font-semibold text-slate-700 hover:underline" onClick={() => copy(o.value, key)}>
+                          {copied ? "コピー済み" : "コピー"}
+                        </button>
+                      </div>
+
+                      <div className="whitespace-pre-wrap break-words text-slate-900">{o.value}</div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </section>
       </div>
     </main>
   );

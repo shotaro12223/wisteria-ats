@@ -24,105 +24,76 @@ function payDisplayMethod(job: Job): string | null {
 
 function payRangeText(job: Job): string | null {
   if (!job.payType || job.payMin == null || job.payMax == null) return null;
-  const min = String(job.payMin);
-  const max = String(job.payMax);
-  return `${job.payType}${min}〜${max}`;
+  return `${job.payType}${job.payMin}〜${job.payMax}`;
 }
 
 /**
- * 連結用： "項目名：値" を作る（空は null）
+ * 区切り無しで連結（空は除外）
+ * 例）["介護", "いいよ"] → "介護いいよ"
  */
-function labeled(label: string, value: unknown): string | null {
-  if (value === null || value === undefined) return null;
+function joinPlain(parts: Array<unknown>): string | null {
+  const xs = parts
+    .map((p) => (p === null || p === undefined ? "" : String(p).trim()))
+    .filter((s) => s.length > 0);
 
-  if (typeof value === "string") {
-    const t = value.trim();
-    if (t.length === 0) return null;
-    return `${label}：${t}`;
-  }
-
-  if (typeof value === "number") {
-    if (!Number.isFinite(value)) return null;
-    return `${label}：${String(value)}`;
-  }
-
-  if (typeof value === "boolean") {
-    return `${label}：${value ? "あり" : "なし"}`;
-  }
-
-  const s = String(value).trim();
-  if (s.length === 0) return null;
-  return `${label}：${s}`;
-}
-
-function joinParts(parts: Array<string | null | undefined>, sep = "／"): string | null {
-  const xs = parts.filter((p): p is string => typeof p === "string" && p.trim().length > 0);
   if (xs.length === 0) return null;
-  return xs.join(sep);
+  return xs.join("");
 }
 
 /**
- * 採用係長：求人タイトル（項目名つき連結）
- * - 求人タイトルには「職種＋キャッチコピー」
- * - “複数連結時は項目名も含める” ルールに従う
+ * 採用係長：求人タイトル
+ * ✅ 職種 + キャッチコピー（区切り無し）
  */
 function saiyouKeichoJobTitle(job: Job): string | null {
-  const parts: Array<string | null> = [
-    labeled("職種", job.jobTitle),
-    labeled("キャッチコピー", job.catchCopy),
-  ];
-  return joinParts(parts);
+  return joinPlain([job.jobTitle, job.catchCopy]);
 }
 
 /**
- * 採用係長：お給料のこと：備考（項目名つき連結）
+ * 採用係長：お給料のこと：備考
+ * ✅ 全部ラベル無し・区切り無しで連結
  */
 function saiyouKeichoPayNote(job: Job): string | null {
-  const parts: Array<string | null> = [
-    labeled("給与（基本給・手当）", job.basePayAndAllowance),
-    labeled("給与（固定手当）", job.fixedAllowance),
-    labeled("賞与（年◯回）", job.bonus),
-    labeled("昇給（年◯回）", job.raise),
-    labeled("固定残業代", job.fixedOvertime),
-    labeled("残業時間", job.overtimeHours),
-    labeled("年収例", job.annualIncomeExample),
-    labeled("試用期間", job.probation),
+  const parts: Array<unknown> = [
+    job.basePayAndAllowance,
+    job.fixedAllowance,
+    job.bonus,
+    job.raise,
+    job.fixedOvertime,
+    job.overtimeHours,
+    job.annualIncomeExample,
+    job.probation,
   ];
 
-  // 試用期間が「あり」の時だけ追記
-  const probationIsOn = (job.probation ?? "").trim() === "あり";
-  if (probationIsOn) {
-    parts.push(labeled("ありの場合条件", job.probationCondition));
-    parts.push(labeled("ありの場合期間", job.probationPeriod));
+  if ((job.probation ?? "").trim() === "あり") {
+    parts.push(job.probationCondition);
+    parts.push(job.probationPeriod);
   }
 
-  // 受動喫煙は手打ち前提、空ならスキップ
-  parts.push(labeled("受動喫煙対策", job.passiveSmoking));
+  parts.push(job.passiveSmoking);
 
-  return joinParts(parts);
+  return joinPlain(parts);
 }
 
 /**
- * 採用係長：働く時間について：備考（項目名つき連結）
+ * 採用係長：働く時間について：備考
+ * ✅ 全部ラベル無し・区切り無しで連結
  */
 function saiyouKeichoWorkNote(job: Job): string | null {
-  const parts: Array<string | null> = [
-    labeled("月々平均勤務時間", job.avgMonthlyWorkHours),
-    labeled("月々平均勤務日数", job.avgMonthlyWorkDays),
-    labeled("勤務形態", job.workStyle),
-    labeled("休日休暇", job.holidays),
-    labeled("年間休日", job.annualHolidays),
-    labeled("休暇", job.leave),
+  const parts: Array<unknown> = [
+    job.avgMonthlyWorkHours,
+    job.avgMonthlyWorkDays,
+    job.workStyle,
+    job.holidays,
+    job.annualHolidays,
+    job.leave,
+    job.workDaysHoursRequired,
   ];
 
-  // “媒体必須の文章”がある場合は最後に
-  parts.push(labeled("勤務時間・曜日（必須など）", job.workDaysHoursRequired));
-
-  return joinParts(parts);
+  return joinPlain(parts);
 }
 
 /**
- * ✅ 出力ページ側でも computed を同じロジックで表示するために export
+ * computed 値解決
  */
 export function getTemplateFieldValue(job: Job, field: TemplateField): string | null {
   const key = field.key;
@@ -134,7 +105,7 @@ export function getTemplateFieldValue(job: Job, field: TemplateField): string | 
   if (key === "computed.saiyouKeichoPayNote") return saiyouKeichoPayNote(job);
   if (key === "computed.saiyouKeichoWorkNote") return saiyouKeichoWorkNote(job);
 
-  const v = job[key];
+  const v = (job as any)[key];
   if (typeof v === "number") return String(v);
   if (typeof v === "string") return v;
   if (v === null || v === undefined) return null;

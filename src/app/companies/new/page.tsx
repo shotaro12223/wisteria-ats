@@ -20,11 +20,12 @@ export default function NewCompanyPage() {
       companyName: "",
       createdAt: now,
       updatedAt: now,
-    };
+    } as any;
   }, []);
 
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [debug, setDebug] = useState<string>("rendered"); // ★ これが見えればレンダー成功
 
   async function handleSubmit(next: Company) {
     const now = new Date().toISOString();
@@ -34,13 +35,14 @@ export default function NewCompanyPage() {
       id: (next as any).id || (initial as any).id,
       createdAt: (next as any).createdAt || (initial as any).createdAt,
       updatedAt: now,
-    };
+    } as any;
 
     setSaveStatus("saving");
     setErrorMessage("");
+    setDebug("submitting...");
 
     try {
-      const res = await fetch("/api/debug/companies", {
+      const res = await fetch("/api/companies", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         cache: "no-store",
@@ -52,7 +54,14 @@ export default function NewCompanyPage() {
         }),
       });
 
-      const json = (await res.json()) as any;
+      let json: any = null;
+      try {
+        json = await res.json();
+      } catch {
+        json = null;
+      }
+
+      setDebug(`POST /api/companies -> HTTP ${res.status} body=${JSON.stringify(json)}`);
 
       if (!res.ok || !json?.ok) {
         const msg = json?.error?.message || `保存に失敗しました (status: ${res.status})`;
@@ -61,8 +70,7 @@ export default function NewCompanyPage() {
 
       setSaveStatus("saved");
 
-      // NOTE: /companies/[companyId] 側がまだ localStorage 前提だと表示が空になる可能性があります。
-      // 次に company detail ページも Supabase 読みに切り替えます。
+      // 遷移
       router.push(`/companies/${(toSave as any).id}`);
     } catch (e) {
       setSaveStatus("error");
@@ -88,6 +96,11 @@ export default function NewCompanyPage() {
             </div>
             <div className="mt-1 text-xs text-slate-500">会社概要を登録してから求人を作成します</div>
 
+            {/* ★ デバッグ表示（ここが見えれば /companies/new は表示できてる） */}
+            <div className="mt-2 text-[11px] text-slate-500">
+              debug: {debug} / saveStatus: {saveStatus}
+            </div>
+
             {saveStatus === "error" ? (
               <div className="mt-2 text-xs text-red-600">保存エラー: {errorMessage}</div>
             ) : null}
@@ -105,7 +118,11 @@ export default function NewCompanyPage() {
 
       {/* Body */}
       <div className="cv-panel p-6">
-        <CompanyForm initialValue={initial} submitLabel={saveStatus === "saving" ? "保存中…" : "保存して会社ページへ"} onSubmit={handleSubmit} />
+        <CompanyForm
+          initialValue={initial}
+          submitLabel={saveStatus === "saving" ? "保存中…" : "保存して会社ページへ"}
+          onSubmit={handleSubmit}
+        />
       </div>
 
       {/* Tip */}

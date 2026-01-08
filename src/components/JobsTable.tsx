@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import type { Job, JobSiteState, SiteStatus } from "@/lib/types";
-import { deleteJob } from "@/lib/storage";
 import { SITE_TEMPLATES } from "@/lib/templates";
 
 type Props = {
@@ -112,8 +111,23 @@ export function JobsTable({ companyId, jobs, onDeleted }: Props) {
     const ok = confirm("この求人を削除しますか？（元に戻せません）");
     if (!ok) return;
 
-    deleteJob(job.id);
-    onDeleted?.();
+    try {
+      const res = await fetch(`/api/jobs/${encodeURIComponent(job.id)}`, {
+        method: "DELETE",
+        cache: "no-store",
+      });
+
+      const json = (await res.json()) as any;
+
+      if (!res.ok || !json?.ok) {
+        const msg = json?.error?.message || `削除に失敗しました (status: ${res.status})`;
+        throw new Error(msg);
+      }
+
+      onDeleted?.();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "削除に失敗しました");
+    }
   }
 
   if (jobs.length === 0) {
@@ -164,10 +178,7 @@ export function JobsTable({ companyId, jobs, onDeleted }: Props) {
           ].filter(Boolean);
 
           return (
-            <div
-              key={j.id}
-              className="group px-5 py-4 hover:bg-slate-50/70"
-            >
+            <div key={j.id} className="group px-5 py-4 hover:bg-slate-50/70">
               <div className="grid grid-cols-12 items-center gap-4">
                 {/* Title */}
                 <div className="col-span-12 sm:col-span-5 min-w-0">

@@ -1,3 +1,9 @@
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
+
+/* =====================
+ * Types（維持）
+ * ===================== */
+
 export type ApplicantStatus = "NEW" | "DOC" | "INT" | "OFFER" | "NG";
 
 export type Applicant = {
@@ -5,7 +11,7 @@ export type Applicant = {
   companyId: string;
   jobId: string;
 
-  appliedAt: string; // "YYYY-MM-DD"
+  appliedAt: string; // YYYY-MM-DD
   siteKey: string; // Indeed 等（手入力可）
 
   name: string;
@@ -16,47 +22,114 @@ export type Applicant = {
   updatedAt: string; // ISO
 };
 
-const KEY = "wisteria_ats_applicants_v1";
+/* =====================
+ * Mapper
+ * ===================== */
 
-function genId(): string {
-  // ブラウザ環境ではrandomUUIDが最強
-  const c = (globalThis as any).crypto;
-  if (c?.randomUUID) return c.randomUUID();
-
-  // フォールバック（localStorage用途なら十分）
-  const a = Date.now().toString(36);
-  const b = Math.random().toString(36).slice(2, 10);
-  const d = Math.random().toString(36).slice(2, 10);
-  return `${a}_${b}${d}`;
+function mapRowToApplicant(row: any): Applicant {
+  return {
+    id: row.id,
+    companyId: row.company_id,
+    jobId: row.job_id,
+    appliedAt: row.applied_at,
+    siteKey: row.site_key,
+    name: row.name,
+    status: row.status,
+    note: row.note ?? undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
 }
 
-function safeParse(raw: string | null): Applicant[] {
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw) as unknown;
-    if (!Array.isArray(parsed)) return [];
-    return parsed as Applicant[];
-  } catch {
+/* =====================
+ * Reads
+ * ===================== */
+
+/**
+ * 求人ごとの応募一覧（求人詳細で使う）
+ */
+export async function listApplicantsByJob(args: {
+  companyId: string;
+  jobId: string;
+}): Promise<Applicant[]> {
+  const { data, error } = await supabaseAdmin
+    .from("applicants")
+    .select("*")
+    .eq("company_id", args.companyId)
+    .eq("job_id", args.jobId)
+    .order("applied_at", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("[listApplicantsByJob]", error);
     return [];
   }
+
+  return (data ?? []).map(mapRowToApplicant);
 }
 
-function readAll(): Applicant[] {
-  if (typeof window === "undefined") return [];
-  return safeParse(window.localStorage.getItem(KEY));
+/**
+ * 全社横断：応募一覧（/applicants で使う想定）
+ */
+export async function listApplicants(args?: {
+  companyId?: string;
+  status?: ApplicantStatus;
+  q?: string;
+}): Promise<Applicant[]> {
+  let query = supabaseAdmin
+    .from("applicants")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (args?.companyId) {
+    query = query.eq("company_id", args.companyId);
+  }
+
+  if (args?.status) {
+    query = query.eq("status", args.status);
+  }
+
+  if (args?.q) {
+    query = query.or(`name.ilike.%${args.q}%,note.ilike.%${args.q}%`);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error("[listApplicants]", error);
+    return [];
+  }
+
+  return (data ?? []).map(mapRowToApplicant);
 }
 
-function writeAll(items: Applicant[]) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(KEY, JSON.stringify(items));
+/**
+ * ダッシュボード用：直近の応募（全ステータス）
+ * - ApplicantsSummary 側で「未対応のみ（NEW）」を切り替えるため、ここでは status を絞らない
+ */
+export async function listRecentApplicants(limit = 5): Promise<Applicant[]> {
+  const { data, error } = await supabaseAdmin
+    .from("applicants")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("[listRecentApplicants]", error);
+    return [];
+  }
+
+  return (data ?? []).map(mapRowToApplicant);
 }
 
-export function listApplicantsByJob(args: { companyId: string; jobId: string }): Applicant[] {
-  const all = readAll();
-  return all.filter((a) => a.companyId === args.companyId && a.jobId === args.jobId);
-}
+/* =====================
+ * Writes
+ * ===================== */
 
-export function createApplicant(input: {
+/**
+ * 応募作成（求人詳細の「+ 応募を追加」で使う）
+ */
+export async function createApplicant(input: {
   companyId: string;
   jobId: string;
   appliedAt: string;
@@ -64,35 +137,80 @@ export function createApplicant(input: {
   name: string;
   status: ApplicantStatus;
   note?: string;
-}): Applicant {
-  const now = new Date().toISOString();
+}): Promise<Applicant | null> {
+  const { data, error } = await supabaseAdmin
+    .from("applicants")
+    .insert({
+      company_id: input.companyId,
+      job_id: input.jobId,
+      applied_at: input.appliedAt,
+      site_key: input.siteKey,
+      name: input.name,
+      status: input.status,
+      note: input.note ?? null,
+    })
+    .select("*")
+    .single();
 
-  const a: Applicant = {
-    id: genId(),
-    companyId: input.companyId,
-    jobId: input.jobId,
-    appliedAt: input.appliedAt,
-    siteKey: input.siteKey,
-    name: input.name,
-    status: input.status,
-    note: input.note,
-    createdAt: now,
-    updatedAt: now,
-  };
+  if (error) {
+    console.error("[createApplicant]", error);
+    return null;
+  }
 
-  const all = readAll();
-  writeAll([a, ...all]);
-  return a;
+  return mapRowToApplicant(data);
 }
 
-export function updateApplicant(next: Applicant) {
-  const all = readAll();
-  const now = new Date().toISOString();
-  const updated: Applicant = { ...next, updatedAt: now };
-  writeAll(all.map((a) => (a.id === next.id ? updated : a)));
+/**
+ * 応募更新（状態/メモ）
+ * ApplicantsClient.tsx は updateApplicant({ ...a, status }) の形で呼んでたので、
+ * 互換性のため「Applicant丸ごと渡し」でもOKにしている。
+ */
+export async function updateApplicant(next: Applicant): Promise<void>;
+export async function updateApplicant(
+  applicantId: string,
+  patch: Partial<Pick<Applicant, "status" | "note">>
+): Promise<void>;
+export async function updateApplicant(a: any, b?: any): Promise<void> {
+  // 1) updateApplicant(next: Applicant) 互換
+  if (typeof a === "object" && a?.id && !b) {
+    const next = a as Applicant;
+    const { error } = await supabaseAdmin
+      .from("applicants")
+      .update({
+        status: next.status,
+        note: next.note ?? null,
+      })
+      .eq("id", next.id);
+
+    if (error) console.error("[updateApplicant]", error);
+    return;
+  }
+
+  // 2) updateApplicant(applicantId, patch)
+  const applicantId = a as string;
+  const patch = b as Partial<Pick<Applicant, "status" | "note">>;
+
+  const { error } = await supabaseAdmin
+    .from("applicants")
+    .update({
+      status: patch.status,
+      note: patch.note ?? null,
+    })
+    .eq("id", applicantId);
+
+  if (error) console.error("[updateApplicant]", error);
 }
 
-export function deleteApplicant(applicantId: string) {
-  const all = readAll();
-  writeAll(all.filter((a) => a.id !== applicantId));
+/**
+ * 応募削除
+ */
+export async function deleteApplicant(applicantId: string): Promise<void> {
+  const { error } = await supabaseAdmin
+    .from("applicants")
+    .delete()
+    .eq("id", applicantId);
+
+  if (error) {
+    console.error("[deleteApplicant]", error);
+  }
 }

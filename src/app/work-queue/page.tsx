@@ -124,6 +124,14 @@ function pill(status: WorkQueueStatus) {
   );
 }
 
+function panel() {
+  return "cv-panel p-4";
+}
+
+function dangerBox() {
+  return "rounded-2xl border bg-white p-5 shadow-sm";
+}
+
 export default function WorkQueueClient() {
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -173,22 +181,47 @@ export default function WorkQueueClient() {
     });
   }, [baseFilteredRows, onlyMine]);
 
+  const tableRows = useMemo<WorkQueueRow[]>(() => {
+    return sortRows(filteredRows);
+  }, [filteredRows]);
+
   const summary = useMemo(() => {
     const total = filteredRows.length;
-    const ng = filteredRows.filter((r: WorkQueueRow) => r.status === "NG").length;
+    const ng = filteredRows.filter((r) => r.status === "NG").length;
 
-    // staleDays 欠損は集計除外
-    const stale7 = filteredRows.filter(
-      (r: WorkQueueRow) => r.staleDays != null && r.staleDays >= 7
-    ).length;
+    const stale7 = filteredRows.filter((r) => r.staleDays != null && r.staleDays >= 7).length;
+    const stale3 = filteredRows.filter((r) => r.staleDays != null && r.staleDays >= 3).length;
 
-    // rpoTouchedDays 欠損は集計除外
-    const rpo7 = filteredRows.filter(
-      (r: WorkQueueRow) => r.rpoTouchedDays != null && r.rpoTouchedDays >= 7
-    ).length;
+    const rpo7 = filteredRows.filter((r) => r.rpoTouchedDays != null && r.rpoTouchedDays >= 7).length;
+    const rpo3 = filteredRows.filter((r) => r.rpoTouchedDays != null && r.rpoTouchedDays >= 3).length;
 
-    return { total, ng, stale7, rpo7 };
+    // 「今日やるべき」：強い基準（7日以上 or NG）
+    const todayMust =
+      filteredRows.filter((r) => (r.staleDays != null && r.staleDays >= 7) || (r.rpoTouchedDays != null && r.rpoTouchedDays >= 7)).length +
+      ng;
+
+    return { total, ng, stale7, stale3, rpo7, rpo3, todayMust };
   }, [filteredRows]);
+
+  const agenda = useMemo(() => {
+    // 優先順の先頭から「今すぐ着手」候補を作る
+    const top = tableRows.slice(0, 5);
+
+    const urgent = tableRows.filter(
+      (r) =>
+        (r.staleDays != null && r.staleDays >= 7) ||
+        (r.rpoTouchedDays != null && r.rpoTouchedDays >= 7) ||
+        r.status === "NG"
+    ).length;
+
+    const soon = tableRows.filter(
+      (r) =>
+        (r.staleDays != null && r.staleDays >= 3) ||
+        (r.rpoTouchedDays != null && r.rpoTouchedDays >= 3)
+    ).length;
+
+    return { urgent, soon, top };
+  }, [tableRows]);
 
   function updateFilter<K extends keyof Filters>(k: K, v: Filters[K]) {
     setFilters((prev: Filters) => ({ ...prev, [k]: v }));
@@ -256,10 +289,6 @@ export default function WorkQueueClient() {
     });
   }
 
-  const tableRows = useMemo<WorkQueueRow[]>(() => {
-    return sortRows(filteredRows);
-  }, [filteredRows]);
-
   // ===== Quick filters =====
   function setQuickStale(threshold: Filters["staleThreshold"]) {
     updateFilter("staleThreshold", threshold);
@@ -280,6 +309,13 @@ export default function WorkQueueClient() {
     );
   }
 
+  function focusToday() {
+    // 「今日やる」：7日以上の滞留 or 7日未タッチ を強制表示
+    updateFilter("staleThreshold", "7PLUS");
+    updateFilter("rpoThreshold", "7PLUS_UNTOUCHED");
+    updateFilter("statuses", ALL_STATUSES);
+  }
+
   const isAllStale = filters.staleThreshold === "ALL";
   const is3Plus = filters.staleThreshold === "3PLUS";
   const is7Plus = filters.staleThreshold === "7PLUS";
@@ -294,7 +330,7 @@ export default function WorkQueueClient() {
 
   return (
     <div className="space-y-5">
-      {/* Header (local to WorkQueue) */}
+      {/* Header */}
       <div
         className="rounded-2xl border bg-white/85 p-4 shadow-sm backdrop-blur"
         style={{ borderColor: "var(--border)" }}
@@ -308,8 +344,9 @@ export default function WorkQueueClient() {
               <span className="text-slate-300">/</span>
               <span className="truncate font-semibold text-slate-900">Work Queue</span>
             </div>
+
             <div className="mt-1 text-xs text-slate-500">
-              要対応の媒体行だけを集めて、滞留/RPO更新/ステータスで優先順に並べます
+              RPOの「今日やるべきこと」を、媒体行単位で優先順に並べます（滞留 / RPO未タッチ / 状態）。
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
@@ -317,17 +354,26 @@ export default function WorkQueueClient() {
                 会社一覧
               </Link>
               <span className="text-slate-300">/</span>
-              <Link href="/jobs" className="cv-link">
-                求人一覧
-              </Link>
-              <span className="text-slate-300">/</span>
               <Link href="/analytics" className="cv-link">
                 分析
               </Link>
+              <span className="text-slate-300">/</span>
+              <span className="rounded-full border bg-white px-2 py-0.5" style={{ borderColor: "var(--border)" }}>
+                表示: <span className="font-medium text-slate-700 tabular-nums">{tableRows.length}</span> 行
+              </span>
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <button
+              type="button"
+              className="cv-btn-primary"
+              onClick={focusToday}
+              title="今日の優先（7日以上滞留＆7日未タッチ）に絞ります"
+            >
+              今日の優先に絞る
+            </button>
+
             <button
               type="button"
               className="cv-btn-secondary"
@@ -352,10 +398,135 @@ export default function WorkQueueClient() {
         </div>
       </div>
 
+      {/* ====== Agenda (IPO見えの核) ====== */}
+      <div className={panel()}>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-sm font-semibold text-slate-900">今日のRPOアジェンダ</div>
+            <div className="mt-1 text-xs text-slate-500">
+              先に「危険度が高い順」に潰すと、全体が安定します。
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              className={chipClass(onlyMine)}
+              onClick={() => setOnlyMine((v) => !v)}
+              title="この端末で最後に触った行だけに絞り込みます（ログイン未導入のため端末基準）"
+            >
+              自分が触った
+            </button>
+
+            <button
+              type="button"
+              className={chipClass(isRpo7Untouched)}
+              onClick={toggleRpo7Untouched}
+              title="RPO更新が7日以上ない行だけに絞り込みます"
+            >
+              RPO: 7日触ってない
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-3">
+          <div className={dangerBox()}>
+            <div className="text-xs font-semibold text-slate-700">今すぐ着手（危険）</div>
+            <div className="mt-1 text-2xl font-semibold text-slate-900 tabular-nums">{agenda.urgent}</div>
+            <div className="mt-2 text-[11px] text-slate-500">
+              7日以上滞留 / 7日未タッチ / NG を含む
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button type="button" className="cv-btn-secondary" onClick={() => setQuickStale("7PLUS")}>
+                滞留: 7日+
+              </button>
+              <button type="button" className="cv-btn-secondary" onClick={toggleRpo7Untouched}>
+                RPO: 7日未タッチ
+              </button>
+            </div>
+          </div>
+
+          <div className={dangerBox()}>
+            <div className="text-xs font-semibold text-slate-700">今週中に処理（注意）</div>
+            <div className="mt-1 text-2xl font-semibold text-slate-900 tabular-nums">{agenda.soon}</div>
+            <div className="mt-2 text-[11px] text-slate-500">3日以上の滞留/未タッチを含む</div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button type="button" className="cv-btn-secondary" onClick={() => setQuickStale("3PLUS")}>
+                滞留: 3日+
+              </button>
+              <button
+                type="button"
+                className="cv-btn-secondary"
+                onClick={() => updateFilter("rpoThreshold", "3PLUS_UNTOUCHED" as any)}
+              >
+                RPO: 3日未タッチ
+              </button>
+            </div>
+          </div>
+
+          <div className={dangerBox()}>
+            <div className="text-xs font-semibold text-slate-700">優先トップ5</div>
+            <div className="mt-2 space-y-2">
+              {loading ? (
+                <div className="text-sm text-slate-600">読み込み中…</div>
+              ) : agenda.top.length === 0 ? (
+                <div className="text-sm text-slate-600">いまは要対応がありません 🎉</div>
+              ) : (
+                agenda.top.map((r) => (
+                  <div key={`${r.jobId}:${r.siteKey}`} className="rounded-xl border bg-white p-3" style={{ borderColor: "var(--border)" }}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {pill(r.status)}
+                          <span className="text-[11px] text-slate-500">
+                            滞留: <span className={staleClass(r.staleDays ?? null)}>{r.staleDays ?? "-"}</span> /{" "}
+                            RPO: <span className={rpoClass(r.rpoTouchedDays ?? null)}>{r.rpoTouchedDays ?? "-"}</span>
+                          </span>
+                        </div>
+
+                        <div className="mt-2 truncate text-sm font-semibold text-slate-900">
+                          {r.companyName} / {r.jobTitle}
+                        </div>
+                        <div className="mt-1 text-[12px] text-slate-600">
+                          媒体: <span className="font-medium">{r.siteKey}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex shrink-0 flex-col gap-2">
+                        {r.companyId ? (
+                          <>
+                            <Link className="cv-btn-secondary" href={`/companies/${r.companyId}/jobs/${r.jobId}`}>
+                              詳細
+                            </Link>
+                            <Link className="cv-btn-secondary" href={`/companies/${r.companyId}/jobs/${r.jobId}/outputs`}>
+                              出力
+                            </Link>
+                          </>
+                        ) : (
+                          <span className="text-[11px] text-slate-400">会社未紐付け</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mt-2 text-[11px] text-slate-500">
+                      最終更新：媒体 {daysAgoLabel(r.mediaUpdatedAtISO)} / RPO {daysAgoLabel(r.rpoLastTouchedAtISO)}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 text-[11px] text-slate-500">
+          ※「自分が触った」は“このブラウザで触った履歴”で判定します（ログイン未導入のため）。担当者ごとに端末が分かれていれば運用できます。
+        </div>
+      </div>
+
       {/* Quick Filters */}
       <div className="cv-panel p-4">
         <div className="flex flex-wrap items-center gap-2">
-          <div className="text-xs font-semibold text-slate-800 mr-2">クイック</div>
+          <div className="mr-2 text-xs font-semibold text-slate-800">クイック</div>
 
           <button
             type="button"
@@ -416,21 +587,6 @@ export default function WorkQueueClient() {
           >
             媒体: 全て
           </button>
-
-          <div className="mx-2 h-4 w-px bg-slate-200" />
-
-          <button
-            type="button"
-            className={chipClass(onlyMine)}
-            onClick={() => setOnlyMine((v) => !v)}
-            title="この端末で最後に触った行だけに絞り込みます（ログイン未導入のため端末基準）"
-          >
-            自分が触った
-          </button>
-        </div>
-
-        <div className="mt-2 text-[11px] text-slate-500">
-          ※「自分が触った」は“このブラウザで触った履歴”で判定します（ログイン未導入のため）。担当者ごとに端末が分かれていれば十分運用できます。
         </div>
       </div>
 
@@ -500,9 +656,7 @@ export default function WorkQueueClient() {
             <select
               className={selectBase()}
               value={filters.staleThreshold}
-              onChange={(e) =>
-                updateFilter("staleThreshold", e.target.value as Filters["staleThreshold"])
-              }
+              onChange={(e) => updateFilter("staleThreshold", e.target.value as Filters["staleThreshold"])}
             >
               <option value="ALL">全て</option>
               <option value="3PLUS">3日以上</option>
@@ -513,58 +667,47 @@ export default function WorkQueueClient() {
         </div>
       </div>
 
-      {/* Summary */}
+      {/* KPI Summary（意味が伝わる文言に変更） */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
         <div className={kpiCard()}>
-          <div className="text-xs text-slate-600">要対応 件数</div>
-          <div className="mt-1 text-2xl font-semibold text-slate-900 tabular-nums">
-            {summary.total}
-          </div>
-          <div className="mt-2 text-[11px] text-slate-500">フィルタ後の対象件数</div>
+          <div className="text-xs text-slate-600">対象（いま見えている要対応）</div>
+          <div className="mt-1 text-2xl font-semibold text-slate-900 tabular-nums">{summary.total}</div>
+          <div className="mt-2 text-[11px] text-slate-500">フィルタ後の媒体行数</div>
         </div>
 
         <div className={kpiCard()}>
-          <div className="text-xs text-slate-600">7日以上 滞留</div>
-          <div className="mt-1 text-2xl font-semibold text-slate-900 tabular-nums">
-            {summary.stale7}
-          </div>
+          <div className="text-xs text-slate-600">放置リスク（滞留7日+）</div>
+          <div className="mt-1 text-2xl font-semibold text-slate-900 tabular-nums">{summary.stale7}</div>
           <div className="mt-2 text-[11px] text-slate-500">媒体更新が止まっている</div>
         </div>
 
         <div className={kpiCard()}>
-          <div className="text-xs text-slate-600">RPO 7日未タッチ</div>
-          <div className="mt-1 text-2xl font-semibold text-slate-900 tabular-nums">
-            {summary.rpo7}
-          </div>
-          <div className="mt-2 text-[11px] text-slate-500">RPO更新が滞留している</div>
+          <div className="text-xs text-slate-600">RPO未対応（7日未タッチ）</div>
+          <div className="mt-1 text-2xl font-semibold text-slate-900 tabular-nums">{summary.rpo7}</div>
+          <div className="mt-2 text-[11px] text-slate-500">あなた側の更新が滞留</div>
         </div>
 
         <div className={kpiCard()}>
-          <div className="text-xs text-slate-600">NG 件数</div>
-          <div className="mt-1 text-2xl font-semibold text-slate-900 tabular-nums">
-            {summary.ng}
-          </div>
-          <div className="mt-2 text-[11px] text-slate-500">修正・再申請が必要</div>
+          <div className="text-xs text-slate-600">修正が必要（NG）</div>
+          <div className="mt-1 text-2xl font-semibold text-slate-900 tabular-nums">{summary.ng}</div>
+          <div className="mt-2 text-[11px] text-slate-500">修正→再申請の対象</div>
         </div>
       </div>
 
-      {/* Table */}
+      {/* Table（既存の強みは残す） */}
       <div className="cv-panel overflow-hidden">
         <div className="border-b px-4 py-3" style={{ borderColor: "var(--border)" }}>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-sm font-semibold text-slate-900">要対応 Work Queue</div>
+              <div className="text-sm font-semibold text-slate-900">詳細（全行）</div>
               <div className="mt-0.5 text-xs text-slate-500">
-                クリックで詳細へ。メモは Enter / フォーカスアウトで保存します。
+                クリックで詳細へ。メモは Enter / フォーカスアウトで保存（RPO更新日が進みます）。
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
               <span className="rounded-full border bg-white px-3 py-1" style={{ borderColor: "var(--border)" }}>
-                表示: <span className="font-medium text-slate-700 tabular-nums">{tableRows.length}</span> 行
-              </span>
-              <span className="rounded-full border bg-white px-3 py-1" style={{ borderColor: "var(--border)" }}>
-                ステータス: {pill("媒体審査中")} {pill("資料待ち")} {pill("停止中")} {pill("NG")}
+                状態: {pill("媒体審査中")} {pill("資料待ち")} {pill("停止中")} {pill("NG")}
               </span>
             </div>
           </div>
@@ -573,7 +716,9 @@ export default function WorkQueueClient() {
         {loading ? (
           <div className="p-6 text-sm text-slate-600">読み込み中…</div>
         ) : tableRows.length === 0 ? (
-          <div className="p-6 text-sm text-slate-600">条件に合う要対応求人はありません</div>
+          <div className="p-6 text-sm text-slate-600">
+            条件に合う要対応求人はありません。<span className="text-slate-400">（リセットすると全件確認できます）</span>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full border-separate border-spacing-0">
@@ -614,17 +759,12 @@ export default function WorkQueueClient() {
                   const badge = STATUS_BADGE[r.status];
 
                   return (
-                    <tr
-                      key={`${r.jobId}:${r.siteKey}`}
-                      className="text-sm hover:bg-slate-50"
-                    >
+                    <tr key={`${r.jobId}:${r.siteKey}`} className="text-sm hover:bg-slate-50">
                       <td className="border-b px-4 py-3" style={{ borderColor: "var(--border)" }}>
                         {r.staleDays == null ? (
                           <span className="text-slate-400">-</span>
                         ) : (
-                          <span className={staleClass(r.staleDays) + " tabular-nums"}>
-                            {r.staleDays}日
-                          </span>
+                          <span className={staleClass(r.staleDays) + " tabular-nums"}>{r.staleDays}日</span>
                         )}
                       </td>
 
@@ -632,9 +772,7 @@ export default function WorkQueueClient() {
                         {r.rpoTouchedDays == null ? (
                           <span className="text-slate-400">-</span>
                         ) : (
-                          <span className={rpoClass(r.rpoTouchedDays) + " tabular-nums"}>
-                            {r.rpoTouchedDays}日
-                          </span>
+                          <span className={rpoClass(r.rpoTouchedDays) + " tabular-nums"}>{r.rpoTouchedDays}日</span>
                         )}
                       </td>
 
@@ -652,10 +790,7 @@ export default function WorkQueueClient() {
 
                       <td className="border-b px-4 py-3" style={{ borderColor: "var(--border)" }}>
                         {r.companyId ? (
-                          <Link
-                            className="font-medium text-slate-800 hover:text-slate-900 hover:underline"
-                            href={`/companies/${r.companyId}`}
-                          >
+                          <Link className="font-medium text-slate-800 hover:text-slate-900 hover:underline" href={`/companies/${r.companyId}`}>
                             {r.companyName}
                           </Link>
                         ) : (
@@ -665,10 +800,7 @@ export default function WorkQueueClient() {
 
                       <td className="border-b px-4 py-3" style={{ borderColor: "var(--border)" }}>
                         {r.companyId ? (
-                          <Link
-                            className="font-medium text-slate-900 hover:text-slate-700 hover:underline"
-                            href={`/companies/${r.companyId}/jobs/${r.jobId}`}
-                          >
+                          <Link className="font-medium text-slate-900 hover:text-slate-700 hover:underline" href={`/companies/${r.companyId}/jobs/${r.jobId}`}>
                             {r.jobTitle}
                           </Link>
                         ) : (
@@ -692,14 +824,10 @@ export default function WorkQueueClient() {
                           placeholder="例）12/26までに条件確認を送る"
                           onBlur={(e) => saveNote(r, e.target.value)}
                           onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              (e.target as HTMLInputElement).blur();
-                            }
+                            if (e.key === "Enter") (e.target as HTMLInputElement).blur();
                           }}
                         />
-                        <div className="mt-1 text-[11px] text-slate-500">
-                          Enterで保存 / フォーカスアウトで保存
-                        </div>
+                        <div className="mt-1 text-[11px] text-slate-500">Enterで保存 / フォーカスアウトで保存</div>
                       </td>
 
                       <td className="border-b px-4 py-3 text-xs text-slate-700" style={{ borderColor: "var(--border)" }}>
@@ -713,27 +841,18 @@ export default function WorkQueueClient() {
 
                       <td className="border-b px-4 py-3" style={{ borderColor: "var(--border)" }}>
                         <div className="flex flex-wrap gap-2">
-                          <Link
-                            className="cv-btn-secondary"
-                            href={
-                              r.companyId
-                                ? `/companies/${r.companyId}/jobs/${r.jobId}`
-                                : `/jobs/${r.jobId}`
-                            }
-                          >
-                            詳細
-                          </Link>
-
-                          <Link
-                            className="cv-btn-secondary"
-                            href={
-                              r.companyId
-                                ? `/companies/${r.companyId}/jobs/${r.jobId}/outputs`
-                                : `/jobs/${r.jobId}`
-                            }
-                          >
-                            出力
-                          </Link>
+                          {r.companyId ? (
+                            <>
+                              <Link className="cv-btn-secondary" href={`/companies/${r.companyId}/jobs/${r.jobId}`}>
+                                詳細
+                              </Link>
+                              <Link className="cv-btn-secondary" href={`/companies/${r.companyId}/jobs/${r.jobId}/outputs`}>
+                                出力
+                              </Link>
+                            </>
+                          ) : (
+                            <span className="text-[11px] text-slate-400">会社未紐付け</span>
+                          )}
                         </div>
                       </td>
                     </tr>

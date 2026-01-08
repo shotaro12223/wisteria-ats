@@ -11,9 +11,9 @@ type NavItem = {
 };
 
 const MAIN: NavItem[] = [
-      { href: "/", label: "Home", desc: "ダッシュボード" },
+  { href: "/", label: "Home", desc: "ダッシュボード" },
   { href: "/companies", label: "会社", desc: "会社概要と求人を管理" },
-  { href: "/jobs", label: "求人", desc: "全求人を横断で見る" },
+  // { href: "/jobs", label: "求人", desc: "全求人を横断で見る" }, // ← 削除
   { href: "/work-queue", label: "Work Queue", desc: "今日やること" },
   { href: "/analytics", label: "分析", desc: "媒体別の応募状況" },
 ];
