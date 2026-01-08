@@ -34,12 +34,18 @@ function toApplicantBase(row: any): Omit<ApplicantOut, "companyName" | "jobTitle
   };
 }
 
-export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+export async function GET(
+  _req: NextRequest,
+  ctx: { params: Promise<{ id: string }> }
+) {
   const { id: rawId } = await ctx.params;
   const id = String(rawId ?? "").trim();
 
   if (!id) {
-    return NextResponse.json({ ok: false, error: { message: "id is required" } }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: { message: "id is required" } },
+      { status: 400 }
+    );
   }
 
   const { data, error } = await supabaseAdmin
