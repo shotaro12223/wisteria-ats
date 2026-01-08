@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 type ApplicantStatus = "NEW" | "DOC" | "INT" | "OFFER" | "NG";
@@ -34,8 +34,10 @@ function toApplicantBase(row: any): Omit<ApplicantOut, "companyName" | "jobTitle
   };
 }
 
-export async function GET(_req: Request, ctx: { params: { id: string } }) {
-  const id = String(ctx?.params?.id ?? "").trim();
+export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const { id: rawId } = await ctx.params;
+  const id = String(rawId ?? "").trim();
+
   if (!id) {
     return NextResponse.json({ ok: false, error: { message: "id is required" } }, { status: 400 });
   }
