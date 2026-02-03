@@ -58,7 +58,22 @@
       "Bash(git stash:*)",
       "Bash(git clone:*)",
       "Bash(git -C C:Userschronprojectswisteria-ats-check log --oneline -5)",
-      "Bash(git -C C:Userschronprojectswisteria-ats-check log --oneline --all)"
+      "Bash(git -C C:Userschronprojectswisteria-ats-check log --oneline --all)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "WebFetch(domain:api.vercel.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:wisteria-ats-topaz.vercel.app)",
+      "Bash(npx vercel --prod)",
+      "Bash(dir:*)",
+      "WebFetch(domain:localhost)",
+      "Bash(python:*)",
+      "Bash(npx supabase migration:*)",
+      "Bash(npx supabase db push:*)",
+      "Bash(findstr:*)",
+      "Bash(node -e \"\nconst { createClient } = require\\(''@supabase/supabase-js''\\);\nconst url = ''https://bgtgxtnduftnxmzyzojt.supabase.co'';\nconst key = ''sb_secret_XNq1mkwC3hbrmp0waAYxvA_K96jSEFK'';\nconst sb = createClient\\(url, key\\);\nsb.rpc\\(''exec_sql'', { sql: ''ALTER TABLE jobs ADD COLUMN IF NOT EXISTS part_time_note TEXT;'' }\\)\n  .then\\(r => { console.log\\(''rpc result:'', JSON.stringify\\(r\\)\\); }\\)\n  .catch\\(e => { console.error\\(''rpc error:'', e.message\\); }\\);\n\")",
+      "Bash(npx supabase:*)",
+      "Bash(git status:*)"
     ]
   }
 }

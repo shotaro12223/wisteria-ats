@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { usePathname } from "next/navigation";
 import ClientPortalLayout from "@/components/client/ClientPortalLayout";
 
 type InterviewAvailability = {
@@ -67,6 +68,11 @@ function isWithinBuffer(date: Date, bufferDays: number): boolean {
 const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
 export default function InterviewAvailabilityPage() {
+  const pathname = usePathname();
+  const adminCompanyId = pathname?.match(/^\/client\/companies\/([^/]+)/)?.[1] ?? null;
+  const isReadOnly = !!adminCompanyId;
+  const qs = adminCompanyId ? `?companyId=${adminCompanyId}` : "";
+
   const [availabilities, setAvailabilities] = useState<InterviewAvailability[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -105,7 +111,7 @@ export default function InterviewAvailabilityPage() {
 
   const loadData = useCallback(async () => {
     try {
-      const res = await fetch("/api/client/interview-availability", { cache: "no-store" });
+      const res = await fetch(`/api/client/interview-availability${qs}`, { cache: "no-store" });
       if (res.ok) {
         const data = await res.json();
         if (data.ok) setAvailabilities(data.data);
@@ -301,12 +307,13 @@ export default function InterviewAvailabilityPage() {
             {/* Settings */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-3 self-start lg:self-auto">
               {/* Buffer Days Setting */}
-              <div className="flex items-center gap-1.5 sm:gap-2 bg-white/80 backdrop-blur-sm px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-slate-200/80 shadow-sm">
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm">
                 <span className="text-[10px] sm:text-xs font-medium text-slate-500">直近NG</span>
                 <select
                   value={bufferDays}
+                  disabled={isReadOnly}
                   onChange={(e) => handleBufferDaysChange(parseInt(e.target.value, 10))}
-                  className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-rose-50 border-0 rounded-lg text-xs sm:text-sm font-medium text-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 cursor-pointer"
+                  className={`px-1.5 sm:px-2 py-0.5 sm:py-1 bg-rose-50 dark:bg-rose-900/30 border-0 rounded-lg text-xs sm:text-sm font-medium text-rose-700 dark:text-rose-300 focus:outline-none focus:ring-2 focus:ring-rose-500 ${isReadOnly ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
                 >
                   <option value={0}>なし</option>
                   <option value={1}>翌日まで</option>
@@ -317,13 +324,14 @@ export default function InterviewAvailabilityPage() {
               </div>
 
               {/* Time Settings */}
-              <div className="flex items-center gap-1.5 sm:gap-2 bg-white/80 backdrop-blur-sm px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-slate-200/80 shadow-sm">
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm">
                 <span className="text-[10px] sm:text-xs font-medium text-slate-500">時間</span>
                 <div className="flex items-center gap-1 sm:gap-1.5">
                   <select
                     value={defaultStartTime}
+                    disabled={isReadOnly}
                     onChange={(e) => setDefaultStartTime(e.target.value)}
-                    className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-slate-50 border-0 rounded-lg text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                    className={`px-1.5 sm:px-2 py-0.5 sm:py-1 bg-slate-50 dark:bg-slate-700 border-0 rounded-lg text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isReadOnly ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
                   >
                     {Array.from({ length: 14 }, (_, i) => i + 8).map((h) => (
                       <option key={h} value={`${h.toString().padStart(2, "0")}:00`}>{h}:00</option>
@@ -332,8 +340,9 @@ export default function InterviewAvailabilityPage() {
                   <span className="text-slate-300 text-xs">—</span>
                   <select
                     value={defaultEndTime}
+                    disabled={isReadOnly}
                     onChange={(e) => setDefaultEndTime(e.target.value)}
-                    className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-slate-50 border-0 rounded-lg text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                    className={`px-1.5 sm:px-2 py-0.5 sm:py-1 bg-slate-50 dark:bg-slate-700 border-0 rounded-lg text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isReadOnly ? "opacity-60 cursor-not-allowed" : "cursor-pointer"}`}
                   >
                     {Array.from({ length: 14 }, (_, i) => i + 8).map((h) => (
                       <option key={h} value={`${h.toString().padStart(2, "0")}:00`}>{h}:00</option>
@@ -445,7 +454,7 @@ export default function InterviewAvailabilityPage() {
                 const willBeRemoved = pendingAction === "remove";
                 const inBuffer = isWithinBuffer(date, bufferDays);
 
-                const canInteract = !past && !inBuffer && isCurrentMonth && !isBooked;
+                const canInteract = !past && !inBuffer && isCurrentMonth && !isBooked && !isReadOnly;
 
                 return (
                   <div

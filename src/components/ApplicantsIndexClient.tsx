@@ -17,8 +17,10 @@ type CompanyLite = {
   companyName: string;
 };
 
-const STATUS_LABEL: Record<ApplicantStatus, string> = {
-  NEW: "新着",
+const STATUS_LABEL: Record<string, string> = {
+  NEW: "NEW",
+  PRE_NG: "面接前NG",
+  SHARED: "連携済み",
   DOC: "書類",
   INT: "面接",
   OFFER: "内定",

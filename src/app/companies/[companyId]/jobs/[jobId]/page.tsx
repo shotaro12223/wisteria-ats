@@ -91,6 +91,7 @@ type JobRow = {
   social_insurance?: string | null;
   passive_smoking?: string | null;
   side_job?: string | null;
+  part_time_note?: string | null;
   probation?: string | null;
   probation_period?: string | null;
   probation_condition?: string | null;
@@ -170,6 +171,7 @@ function rowToJob(r: JobRow, fallbackCompanyId: string, fallbackCompanyName: str
     socialInsurance: r.social_insurance ?? "",
     passiveSmoking: r.passive_smoking ?? "",
     sideJob: r.side_job ?? "",
+    partTimeNote: r.part_time_note ?? "",
     probation: r.probation ?? "",
     probationPeriod: r.probation_period ?? "",
     probationCondition: r.probation_condition ?? "",
@@ -343,6 +345,7 @@ export default function CompanyJobDetailPage() {
 
   const [site, setSite] = useState<JobSite>("採用係長");
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [outputOpen, setOutputOpen] = useState(false);
 
   const [openJobForm, setOpenJobForm] = useState(false);
 
@@ -506,6 +509,7 @@ export default function CompanyJobDetailPage() {
       socialInsurance: n.socialInsurance ?? "",
       passiveSmoking: n.passiveSmoking ?? "",
       sideJob: n.sideJob ?? "",
+      partTimeNote: n.partTimeNote ?? "",
       probation: n.probation ?? "",
       probationPeriod: n.probationPeriod ?? "",
       probationCondition: n.probationCondition ?? "",
@@ -660,45 +664,59 @@ export default function CompanyJobDetailPage() {
         </div>
       </section>
 
-      <section className="cv-panel p-5">
-        <div className="flex items-center justify-between gap-3">
+      <section className="cv-panel overflow-hidden">
+        <button
+          type="button"
+          className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+          onClick={() => setOutputOpen((p) => !p)}
+        >
           <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">出力</div>
           <div className="flex items-center gap-2">
-            <TemplateSelector value={site} options={JOB_SITES} onChange={setSite} />
+            <svg className={`w-4 h-4 text-slate-400 transition-transform ${outputOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
           </div>
-        </div>
+        </button>
 
-        <div className="mt-4 space-y-3">
-          {outputs.length === 0 ? (
-            <div
-              className="rounded-2xl border bg-[var(--surface-muted)] p-4 text-sm text-slate-600 dark:text-slate-400"
-              style={{ borderColor: "var(--border)" }}
-            >
-              —
+        {outputOpen && (
+          <div className="px-5 pb-5 space-y-4">
+            <div className="flex items-center gap-2">
+              <TemplateSelector value={site} options={JOB_SITES} onChange={setSite} />
             </div>
-          ) : (
-            outputs.map((o, idx) => {
-              const key = `${site}-${o.label}-${idx}`;
-              const copied = copiedKey === key;
 
-              return (
-                <div key={key} className={outputItemBox(copied)} style={{ borderColor: copied ? undefined : "var(--border)" }}>
-                  <div className="mb-2 flex items-center justify-between gap-3">
-                    <div className="min-w-0 text-xs font-semibold text-slate-700 dark:text-slate-300">{o.label}</div>
-                    <button
-                      className="shrink-0 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:underline"
-                      onClick={() => copy(o.value, key)}
-                    >
-                      {copied ? "コピー済み" : "コピー"}
-                    </button>
-                  </div>
-
-                  <div className="whitespace-pre-wrap break-words text-slate-900 dark:text-slate-100">{o.value}</div>
+            <div className="space-y-3">
+              {outputs.length === 0 ? (
+                <div
+                  className="rounded-2xl border bg-[var(--surface-muted)] p-4 text-sm text-slate-600 dark:text-slate-400"
+                  style={{ borderColor: "var(--border)" }}
+                >
+                  —
                 </div>
-              );
-            })
-          )}
-        </div>
+              ) : (
+                outputs.map((o, idx) => {
+                  const key = `${site}-${o.label}-${idx}`;
+                  const copied = copiedKey === key;
+
+                  return (
+                    <div key={key} className={outputItemBox(copied)} style={{ borderColor: copied ? undefined : "var(--border)" }}>
+                      <div className="mb-2 flex items-center justify-between gap-3">
+                        <div className="min-w-0 text-xs font-semibold text-slate-700 dark:text-slate-300">{o.label}</div>
+                        <button
+                          className="shrink-0 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:underline"
+                          onClick={() => copy(o.value, key)}
+                        >
+                          {copied ? "コピー済み" : "コピー"}
+                        </button>
+                      </div>
+
+                      <div className="whitespace-pre-wrap break-words text-slate-900 dark:text-slate-100">{o.value}</div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
       </section>
 
       <section className="cv-panel overflow-hidden">

@@ -4,7 +4,7 @@ import { supabaseBrowser } from "@/lib/supabaseBrowser";
  * Types（維持）
  * ===================== */
 
-export type ApplicantStatus = "NEW" | "DOC" | "INT" | "OFFER" | "NG";
+export type ApplicantStatus = "NEW" | "DOC" | "INT" | "OFFER" | "NG" | "PRE_NG" | "SHARED";
 
 export type Applicant = {
   id: string;

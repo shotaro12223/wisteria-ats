@@ -121,6 +121,7 @@ export function JobForm(props: Props) {
     // 募集人数 / 副業
     hiringCount: init.hiringCount ?? "",
     sideJob: init.sideJob ?? "",
+    partTimeNote: init.partTimeNote ?? "",
 
     // 長文
     jobDescription: init.jobDescription ?? "",
@@ -192,6 +193,7 @@ export function JobForm(props: Props) {
 
       hiringCount: next.hiringCount ?? "",
       sideJob: next.sideJob ?? "",
+      partTimeNote: next.partTimeNote ?? "",
 
       jobDescription: next.jobDescription ?? "",
       careerMap: next.careerMap ?? "",
@@ -413,6 +415,18 @@ export function JobForm(props: Props) {
               onChange={(e) => setField("sideJob", e.target.value)}
               placeholder="例）可（条件あり） / 不可"
             />
+          </div>
+
+          <div className="sm:col-span-2">
+            <div className={labelBase()}>勤務補足</div>
+            <textarea
+              className={[inputBase(), "min-h-[80px] resize-y"].join(" ")}
+              style={{ borderColor: "var(--border)" }}
+              value={v.partTimeNote}
+              onChange={(e) => setField("partTimeNote", e.target.value)}
+              placeholder={"例）1日3時間〜OK、週2日〜OK、扶養内勤務可、Wワーク歓迎"}
+            />
+            <div className={helpBase()}>アルバイト・パート向けの勤務日数・時間などの補足情報</div>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { supabaseRoute } from "@/lib/supabaseRoute";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export const dynamic = "force-dynamic";
 
@@ -175,4 +176,82 @@ export async function PATCH(
   }
 
   return NextResponse.json({ ok: true, data: updatedRequest });
+}
+
+// DELETE: 打ち合わせ依頼を取り消す（pendingのみ）
+export async function DELETE(
+  req: NextRequest,
+  ctx: { params: Promise<{ id: string }> }
+) {
+  const { id } = await ctx.params;
+  const { supabase } = supabaseRoute(req);
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return NextResponse.json(
+      { ok: false, error: { message: "Unauthorized" } },
+      { status: 401 }
+    );
+  }
+
+  const { data: clientUser, error: clientUserError } = await supabase
+    .from("client_users")
+    .select("id, company_id, is_active")
+    .eq("user_id", user.id)
+    .single();
+
+  if (clientUserError || !clientUser) {
+    return NextResponse.json(
+      { ok: false, error: { message: "Client user not found" } },
+      { status: 403 }
+    );
+  }
+
+  if (!clientUser.is_active) {
+    return NextResponse.json(
+      { ok: false, error: { message: "Account is inactive" } },
+      { status: 403 }
+    );
+  }
+
+  // Verify the request exists and is pending
+  const { data: existingRequest, error: existingError } = await supabase
+    .from("meeting_requests")
+    .select("id, status")
+    .eq("id", id)
+    .eq("company_id", clientUser.company_id)
+    .single();
+
+  if (existingError || !existingRequest) {
+    return NextResponse.json(
+      { ok: false, error: { message: "Meeting request not found" } },
+      { status: 404 }
+    );
+  }
+
+  if (existingRequest.status !== "pending") {
+    return NextResponse.json(
+      { ok: false, error: { message: "依頼受付中のもののみ取り消しできます" } },
+      { status: 400 }
+    );
+  }
+
+  // Delete the request (use admin client - no client DELETE RLS policy)
+  const { error: deleteError } = await supabaseAdmin
+    .from("meeting_requests")
+    .delete()
+    .eq("id", id);
+
+  if (deleteError) {
+    return NextResponse.json(
+      { ok: false, error: { message: deleteError.message } },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json({ ok: true });
 }

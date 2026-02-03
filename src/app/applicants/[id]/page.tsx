@@ -54,24 +54,61 @@ type Job = {
   company_id: string;
 };
 
+type ClientFeedback = {
+  id: string;
+  interview_type: string;
+  interview_date: string;
+  interviewer_name: string | null;
+  interview_result: string;
+  fail_reason: string | null;
+  hire_intention: string | null;
+  pass_rating: number | null;
+  pass_comment: string | null;
+  next_action: string | null;
+  created_at: string;
+  client_users: { id: string; display_name: string } | null;
+};
+
 type Res =
   | { ok: true; item: ApplicantWithNames }
   | { ok: false; error: { message: string } };
 
-const STATUS_LABEL: Record<ApplicantStatus, string> = {
-  NEW: "新着",
+const STATUS_LABEL: Record<string, string> = {
+  NEW: "NEW",
+  PRE_NG: "面接前NG",
+  SHARED: "連携済み",
+  // Legacy
   DOC: "書類",
   INT: "面接",
   OFFER: "内定",
   NG: "NG",
 };
 
-const STATUS_COLORS: Record<ApplicantStatus, string> = {
+const STATUS_COLORS: Record<string, string> = {
   NEW: "bg-blue-500",
+  PRE_NG: "bg-rose-500",
+  SHARED: "bg-emerald-500",
+  // Legacy
   DOC: "bg-purple-500",
   INT: "bg-amber-500",
   OFFER: "bg-emerald-500",
   NG: "bg-slate-400",
+};
+
+const ACTIVE_STATUSES: ApplicantStatus[] = ["NEW", "PRE_NG", "SHARED"];
+
+const INTERVIEW_RESULT_LABEL: Record<string, { text: string; color: string }> = {
+  pass: { text: "合格", color: "bg-emerald-100 text-emerald-800" },
+  fail: { text: "不合格", color: "bg-rose-100 text-rose-800" },
+  pending: { text: "保留", color: "bg-amber-100 text-amber-800" },
+  no_show: { text: "無断欠席", color: "bg-slate-100 text-slate-800" },
+};
+
+const HIRE_INTENTION_LABEL: Record<string, string> = {
+  strong_yes: "ぜひ採用",
+  yes: "採用したい",
+  maybe: "検討中",
+  no: "見送り",
 };
 
 function fmtDateTime(iso?: string) {
@@ -107,6 +144,8 @@ export default function ApplicantDetailPage() {
   const [interviewBooking, setInterviewBooking] = useState<InterviewSlot | null>(null);
   const [availableSlots, setAvailableSlots] = useState<InterviewSlot[]>([]);
   const [bookingSlotId, setBookingSlotId] = useState<string | null>(null);
+
+  const [feedbackList, setFeedbackList] = useState<ClientFeedback[]>([]);
 
   /* ─────────────── プレミアムHero用 ─────────────── */
   const heroRef = useRef<HTMLDivElement>(null);
@@ -167,6 +206,17 @@ export default function ApplicantDetailPage() {
         }
       } catch (e) {
         console.error("Failed to load interview booking:", e);
+      }
+
+      // Load client feedback
+      try {
+        const fbRes = await fetch(`/api/admin/applicants/${encodeURIComponent(id)}/feedback`, { cache: "no-store" });
+        const fbJson = await fbRes.json();
+        if (fbJson.ok) {
+          setFeedbackList(fbJson.data || []);
+        }
+      } catch (e) {
+        console.error("Failed to load feedback:", e);
       }
     } catch (e) {
       console.error(e);
@@ -752,21 +802,46 @@ export default function ApplicantDetailPage() {
               <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-2 uppercase">
                 ステータス
               </label>
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(STATUS_LABEL).map(([k, label]) => (
-                  <button
-                    key={k}
-                    type="button"
-                    onClick={() => setStatus(k as ApplicantStatus)}
-                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                      status === k
-                        ? `${STATUS_COLORS[k as ApplicantStatus]} text-white shadow-lg`
-                        : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
+              <div className="flex items-center gap-4">
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value as ApplicantStatus)}
+                  className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition-all"
+                >
+                  {ACTIVE_STATUSES.map((k) => (
+                    <option key={k} value={k}>{STATUS_LABEL[k]}</option>
+                  ))}
+                  {/* Show legacy status as option if currently set */}
+                  {!ACTIVE_STATUSES.includes(status) && (
+                    <option value={status}>{STATUS_LABEL[status] || status}（旧）</option>
+                  )}
+                </select>
+
+                <div className="h-6 w-px bg-slate-200 dark:bg-slate-700" />
+
+                {/* Latest client feedback */}
+                {feedbackList.length > 0 ? (() => {
+                  const latest = feedbackList[0];
+                  const resultInfo = INTERVIEW_RESULT_LABEL[latest.interview_result];
+                  const intentionLabel = latest.hire_intention ? HIRE_INTENTION_LABEL[latest.hire_intention] : null;
+                  return (
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">面談結果:</span>
+                      {resultInfo && (
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${resultInfo.color}`}>
+                          {resultInfo.text}
+                        </span>
+                      )}
+                      {intentionLabel && (
+                        <span className="text-[11px] text-slate-600 dark:text-slate-400">
+                          ({intentionLabel})
+                        </span>
+                      )}
+                    </div>
+                  );
+                })() : (
+                  <span className="text-[11px] text-slate-400">面談結果なし</span>
+                )}
               </div>
             </div>
           </div>

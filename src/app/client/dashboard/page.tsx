@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import ClientPortalLayout from "@/components/client/ClientPortalLayout";
 import Link from "next/link";
 
@@ -31,6 +32,9 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }
 };
 
 export default function ClientDashboardPage() {
+  const pathname = usePathname();
+  const adminCompanyId = pathname?.match(/^\/client\/companies\/([^/]+)/)?.[1] ?? null;
+  const linkBase = adminCompanyId ? `/client/companies/${adminCompanyId}` : "/client";
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,10 +48,11 @@ export default function ClientDashboardPage() {
   useEffect(() => {
     async function loadData() {
       setLoading(true);
+      const qs = adminCompanyId ? `?companyId=${adminCompanyId}` : "";
       try {
         const [applicantsRes, jobsRes] = await Promise.all([
-          fetch("/api/client/applicants", { cache: "no-store" }),
-          fetch("/api/client/jobs", { cache: "no-store" }),
+          fetch(`/api/client/applicants${qs}`, { cache: "no-store" }),
+          fetch(`/api/client/jobs${qs}`, { cache: "no-store" }),
         ]);
 
         let applicantsData: Applicant[] = [];
@@ -81,7 +86,7 @@ export default function ClientDashboardPage() {
     }
 
     loadData();
-  }, []);
+  }, [adminCompanyId]);
 
   // Calculate stats from applicants
   const now = new Date();
@@ -322,7 +327,7 @@ export default function ClientDashboardPage() {
                   <h2 className="text-[15px] font-semibold text-slate-900 dark:text-slate-100">採用ファネル</h2>
                   <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5">選考プロセス別の応募者数</p>
                 </div>
-                <Link href="/client/analytics" className="text-[12px] font-medium text-indigo-600 hover:text-indigo-700 transition-colors">
+                <Link href={`${linkBase}/analytics`} className="text-[12px] font-medium text-indigo-600 hover:text-indigo-700 transition-colors">
                   詳細を見る →
                 </Link>
               </div>
@@ -367,7 +372,7 @@ export default function ClientDashboardPage() {
                   <h2 className="text-[15px] font-semibold text-slate-900 dark:text-slate-100">最近の応募者</h2>
                   <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5">直近の応募</p>
                 </div>
-                <Link href="/client/applicants" className="text-[12px] font-medium text-indigo-600 hover:text-indigo-700 transition-colors">
+                <Link href={`${linkBase}/applicants`} className="text-[12px] font-medium text-indigo-600 hover:text-indigo-700 transition-colors">
                   すべて見る →
                 </Link>
               </div>
@@ -393,7 +398,7 @@ export default function ClientDashboardPage() {
                     return (
                       <Link
                         key={applicant.id}
-                        href={`/client/applicants/${applicant.id}`}
+                        href={`${linkBase}/applicants/${applicant.id}`}
                         className="flex items-center justify-between px-6 py-4 hover:bg-slate-50 dark:bg-slate-800/50 transition-colors group"
                       >
                         <div className="flex items-center gap-4 min-w-0">
@@ -499,7 +504,7 @@ export default function ClientDashboardPage() {
               <h3 className="text-[13px] font-medium text-slate-400 mb-4">クイックアクション</h3>
               <div className="space-y-2">
                 <Link
-                  href="/client/applicants"
+                  href={`${linkBase}/applicants`}
                   className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group"
                 >
                   <div className="flex items-center gap-3">
@@ -515,7 +520,7 @@ export default function ClientDashboardPage() {
                   </svg>
                 </Link>
                 <Link
-                  href="/client/jobs"
+                  href={`${linkBase}/jobs`}
                   className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group"
                 >
                   <div className="flex items-center gap-3">
@@ -531,7 +536,7 @@ export default function ClientDashboardPage() {
                   </svg>
                 </Link>
                 <Link
-                  href="/client/analytics"
+                  href={`${linkBase}/analytics`}
                   className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group"
                 >
                   <div className="flex items-center gap-3">

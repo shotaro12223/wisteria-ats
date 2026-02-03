@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import type { ReactElement } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import ClientPortalLayout from "@/components/client/ClientPortalLayout";
 
 type Notification = {
@@ -53,6 +53,10 @@ const TYPE_ICONS: Record<string, { icon: ReactElement; color: string }> = {
 
 export default function NotificationsPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const adminCompanyId = pathname?.match(/^\/client\/companies\/([^/]+)/)?.[1] ?? null;
+  const isReadOnly = !!adminCompanyId;
+
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -64,6 +68,9 @@ export default function NotificationsPage() {
       const params = new URLSearchParams({ limit: "100" });
       if (filter === "unread") {
         params.set("unread", "true");
+      }
+      if (adminCompanyId) {
+        params.set("companyId", adminCompanyId);
       }
       const res = await fetch(`/api/client/notifications?${params}`, {
         cache: "no-store",
@@ -85,6 +92,7 @@ export default function NotificationsPage() {
   }, [loadNotifications]);
 
   const handleMarkAsRead = async (id: string) => {
+    if (isReadOnly) return;
     try {
       const res = await fetch("/api/client/notifications", {
         method: "PUT",
@@ -104,6 +112,7 @@ export default function NotificationsPage() {
   };
 
   const handleMarkAllAsRead = async () => {
+    if (isReadOnly) return;
     try {
       const res = await fetch("/api/client/notifications", {
         method: "PUT",
@@ -166,7 +175,7 @@ export default function NotificationsPage() {
               {unreadCount > 0 ? `${unreadCount}件の未読通知があります` : "すべての通知は既読です"}
             </p>
           </div>
-          {unreadCount > 0 && (
+          {unreadCount > 0 && !isReadOnly && (
             <button
               onClick={handleMarkAllAsRead}
               className="px-4 py-2 text-[13px] font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"

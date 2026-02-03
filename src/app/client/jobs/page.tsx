@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import ClientPortalLayout from "@/components/client/ClientPortalLayout";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 type Job = {
   id: string;
@@ -14,13 +15,17 @@ type Job = {
 };
 
 export default function ClientJobsPage() {
+  const pathname = usePathname();
+  const adminCompanyId = pathname?.match(/^\/client\/companies\/([^/]+)/)?.[1] ?? null;
+  const linkBase = adminCompanyId ? `/client/companies/${adminCompanyId}` : "/client";
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadJobs() {
       setLoading(true);
-      const res = await fetch("/api/client/jobs", { cache: "no-store" });
+      const qs = adminCompanyId ? `?companyId=${adminCompanyId}` : "";
+      const res = await fetch(`/api/client/jobs${qs}`, { cache: "no-store" });
 
       if (res.ok) {
         const data = await res.json();
@@ -33,7 +38,7 @@ export default function ClientJobsPage() {
     }
 
     loadJobs();
-  }, []);
+  }, [adminCompanyId]);
 
   if (loading) {
     return (
@@ -77,7 +82,7 @@ export default function ClientJobsPage() {
             {jobs.map((job) => (
               <Link
                 key={job.id}
-                href={`/client/jobs/${job.id}`}
+                href={`${linkBase}/jobs/${job.id}`}
                 className="group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700/60 p-6 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-sky-500/5 to-transparent rounded-full -mr-16 -mt-16"></div>

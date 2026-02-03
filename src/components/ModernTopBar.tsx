@@ -124,6 +124,17 @@ export default function ModernTopBar({ dockExpanded }: TopBarProps) {
 
             {/* Right - Controls */}
             <div className="flex items-center gap-1 shrink-0">
+              {/* Calendar */}
+              <Link
+                href="/calendar"
+                className="flex items-center justify-center w-9 h-9 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-700 dark:hover:text-slate-200 transition-all"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-[18px] h-[18px]">
+                  <rect x="3" y="4" width="18" height="18" rx="2" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M16 2v4M8 2v4M3 10h18" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </Link>
+
               {/* Notification bell */}
               <Link
                 href="/work-queue"

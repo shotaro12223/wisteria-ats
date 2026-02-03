@@ -58,6 +58,7 @@ type JobRow = {
   social_insurance?: string | null;
   passive_smoking?: string | null;
   side_job?: string | null;
+  part_time_note?: string | null;
   probation?: string | null;
   probation_period?: string | null;
   probation_condition?: string | null;
@@ -170,6 +171,7 @@ type PatchBody = {
   socialInsurance?: string;
   passiveSmoking?: string;
   sideJob?: string;
+  partTimeNote?: string;
   probation?: string;
   probationPeriod?: string;
   probationCondition?: string;
@@ -409,8 +411,8 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ jobId: st
     if (typeof body.secondment === "string") updatePayload.secondment = body.secondment;
     if (typeof body.payType === "string") updatePayload.pay_type = body.payType;
     if (typeof body.grossPay === "string") updatePayload.gross_pay = body.grossPay;
-    if (typeof body.payMin === "number") updatePayload.pay_min = body.payMin;
-    if (typeof body.payMax === "number") updatePayload.pay_max = body.payMax;
+    if (typeof body.payMin === "number" && Number.isFinite(body.payMin) && Math.abs(body.payMin) <= 2147483647) updatePayload.pay_min = body.payMin;
+    if (typeof body.payMax === "number" && Number.isFinite(body.payMax) && Math.abs(body.payMax) <= 2147483647) updatePayload.pay_max = body.payMax;
     if (typeof body.basePayAndAllowance === "string") updatePayload.base_pay_and_allowance = body.basePayAndAllowance;
     if (typeof body.fixedAllowance === "string") updatePayload.fixed_allowance = body.fixedAllowance;
     if (typeof body.fixedOvertime === "string") updatePayload.fixed_overtime = body.fixedOvertime;
@@ -432,12 +434,13 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ jobId: st
     if (typeof body.socialInsurance === "string") updatePayload.social_insurance = body.socialInsurance;
     if (typeof body.passiveSmoking === "string") updatePayload.passive_smoking = body.passiveSmoking;
     if (typeof body.sideJob === "string") updatePayload.side_job = body.sideJob;
+    if (typeof body.partTimeNote === "string") updatePayload.part_time_note = body.partTimeNote;
     if (typeof body.probation === "string") updatePayload.probation = body.probation;
     if (typeof body.probationPeriod === "string") updatePayload.probation_period = body.probationPeriod;
     if (typeof body.probationCondition === "string") updatePayload.probation_condition = body.probationCondition;
     if (typeof body.probationPayType === "string") updatePayload.probation_pay_type = body.probationPayType;
-    if (typeof body.probationPayMin === "number") updatePayload.probation_pay_min = body.probationPayMin;
-    if (typeof body.probationPayMax === "number") updatePayload.probation_pay_max = body.probationPayMax;
+    if (typeof body.probationPayMin === "number" && Number.isFinite(body.probationPayMin) && Math.abs(body.probationPayMin) <= 2147483647) updatePayload.probation_pay_min = body.probationPayMin;
+    if (typeof body.probationPayMax === "number" && Number.isFinite(body.probationPayMax) && Math.abs(body.probationPayMax) <= 2147483647) updatePayload.probation_pay_max = body.probationPayMax;
     if (typeof body.probationFixedOvertime === "string") updatePayload.probation_fixed_overtime = body.probationFixedOvertime;
     if (typeof body.probationAvgMonthlyWorkHours === "string") updatePayload.probation_avg_monthly_work_hours = body.probationAvgMonthlyWorkHours;
     if (typeof body.probationNote === "string") updatePayload.probation_note = body.probationNote;

@@ -65,6 +65,7 @@ export default function ClientPortalLayout({ children }: ClientPortalLayoutProps
   const [meetingSubmitting, setMeetingSubmitting] = useState(false);
   const [meetingSubmitted, setMeetingSubmitted] = useState(false);
   const [syncStatus, setSyncStatus] = useState<"synced" | "syncing" | "error">("synced");
+  const [clientNotifications, setClientNotifications] = useState<{ id: string; type: string; title: string; body: string; url: string | null; is_read: boolean; created_at: string }[]>([]);
   const [quickStats, setQuickStats] = useState<QuickStats>({ todayApplicants: 0, pendingReview: 0, interviewsThisWeek: 0 });
   const [statsAnimating, setStatsAnimating] = useState(false);
 
@@ -74,6 +75,7 @@ export default function ClientPortalLayout({ children }: ClientPortalLayoutProps
   const quickActionRef = useRef<HTMLDivElement>(null);
   const helpRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const notifiedIdsRef = useRef<Set<string>>(new Set());
 
   // Update time every minute
   useEffect(() => {
@@ -89,6 +91,10 @@ export default function ClientPortalLayout({ children }: ClientPortalLayoutProps
     }, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // Mark NEW applicant IDs as seen when on the applicants page
+  const SEEN_KEY = "wisteria_client_seen_applicants_v1";
+  const isOnApplicantsPage = pathname?.includes("/applicants");
 
   // Load quick stats
   useEffect(() => {
@@ -112,8 +118,25 @@ export default function ClientPortalLayout({ children }: ClientPortalLayoutProps
               new Date(a.applied_at) >= today
             ).length;
 
-            const pendingReview = applicants.filter((a: { status: string }) =>
+            // Get seen IDs from localStorage
+            let seenIds: string[] = [];
+            try {
+              seenIds = JSON.parse(localStorage.getItem(SEEN_KEY) || "[]");
+            } catch { /* ignore */ }
+
+            const newApplicants = applicants.filter((a: { id: string; status: string }) =>
               a.status === "NEW"
+            );
+
+            // If user is on applicants page, mark all NEW as seen
+            if (isOnApplicantsPage) {
+              const allNewIds = newApplicants.map((a: { id: string }) => a.id);
+              localStorage.setItem(SEEN_KEY, JSON.stringify(allNewIds));
+              seenIds = allNewIds;
+            }
+
+            const pendingReview = newApplicants.filter(
+              (a: { id: string }) => !seenIds.includes(a.id)
             ).length;
 
             const weekStart = new Date();
@@ -136,7 +159,75 @@ export default function ClientPortalLayout({ children }: ClientPortalLayoutProps
       const interval = setInterval(loadQuickStats, 60000);
       return () => clearInterval(interval);
     }
+  }, [loading, isPreviewMode, previewCompanyId, isOnApplicantsPage]);
+
+  // Load client notifications with polling
+  useEffect(() => {
+    let isFirst = true;
+    async function loadNotifications() {
+      try {
+        const url = isPreviewMode && previewCompanyId
+          ? `/api/client/notifications?limit=20&companyId=${previewCompanyId}`
+          : "/api/client/notifications?limit=20";
+        const res = await fetch(url, { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.ok && data.data?.notifications) {
+            const items = data.data.notifications as typeof clientNotifications;
+            setClientNotifications(items);
+
+            // On first load, seed known IDs to avoid burst
+            if (isFirst) {
+              items.forEach((n) => notifiedIdsRef.current.add(n.id));
+              isFirst = false;
+              return;
+            }
+
+            // Desktop notifications for new unread items
+            if (typeof window !== "undefined" && Notification.permission === "granted") {
+              for (const n of items) {
+                if (!n.is_read && !notifiedIdsRef.current.has(n.id)) {
+                  notifiedIdsRef.current.add(n.id);
+                  new Notification(n.title, { body: n.body, tag: n.id });
+                }
+              }
+            }
+          }
+        }
+      } catch {
+        // silent
+      }
+    }
+    if (!loading) {
+      loadNotifications();
+      const interval = setInterval(loadNotifications, 5000);
+      return () => clearInterval(interval);
+    }
   }, [loading, isPreviewMode, previewCompanyId]);
+
+  async function markAllNotificationsRead() {
+    try {
+      const res = await fetch("/api/client/notifications", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ markAllRead: true }),
+      });
+      if (res.ok) {
+        setClientNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      }
+    } catch { /* silent */ }
+  }
+
+  async function markNotificationRead(id: string) {
+    try {
+      await fetch("/api/client/notifications", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notificationId: id }),
+      });
+      setClientNotifications((prev) => prev.map((n) => n.id === id ? { ...n, is_read: true } : n));
+    } catch { /* silent */ }
+  }
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -390,8 +481,26 @@ export default function ClientPortalLayout({ children }: ClientPortalLayoutProps
     },
   ];
 
-  // Real notifications will be fetched from API - empty for now
-  const notifications: { id: number; type: string; title: string; message: string; time: string; unread: boolean }[] = [];
+  // Map clientNotifications to the shape used by the notification UI
+  function formatTimeAgo(dateStr: string) {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "たった今";
+    if (mins < 60) return `${mins}分前`;
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}時間前`;
+    const days = Math.floor(hours / 24);
+    return `${days}日前`;
+  }
+  const notifications = clientNotifications.map((n) => ({
+    id: n.id,
+    type: n.type || "system",
+    title: n.title,
+    message: n.body,
+    time: formatTimeAgo(n.created_at),
+    unread: !n.is_read,
+    url: n.url,
+  }));
 
   const searchResults = searchQuery.length > 0 ? [
     { type: "applicant", label: "応募者", items: ["山田太郎", "佐藤花子", "鈴木一郎"].filter(n => n.includes(searchQuery)) },
@@ -916,10 +1025,6 @@ export default function ClientPortalLayout({ children }: ClientPortalLayoutProps
                 <svg className="w-5 h-5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.75}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
                 </svg>
-                {/* NEW badge */}
-                <span className="absolute -top-1 -right-1 px-1 py-0.5 text-[9px] font-bold text-white bg-rose-500 rounded animate-pulse">
-                  NEW
-                </span>
               </button>
               {helpOpen && (
                 <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-xl shadow-slate-200/50 dark:shadow-black/30 border border-slate-200/80 dark:border-slate-700 overflow-hidden animate-slideDown">
@@ -1010,7 +1115,10 @@ export default function ClientPortalLayout({ children }: ClientPortalLayoutProps
                   <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-slate-700">
                     <h3 className="text-[14px] font-semibold text-slate-900 dark:text-slate-100">通知</h3>
                     {notifications.length > 0 && (
-                      <button className="text-[12px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium transition-colors">
+                      <button
+                        onClick={markAllNotificationsRead}
+                        className="text-[12px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium transition-colors"
+                      >
                         すべて既読
                       </button>
                     )}
@@ -1029,6 +1137,10 @@ export default function ClientPortalLayout({ children }: ClientPortalLayoutProps
                       notifications.map((notification) => (
                         <div
                           key={notification.id}
+                          onClick={() => {
+                            if (notification.unread) markNotificationRead(notification.id);
+                            if (notification.url) { setNotificationOpen(false); router.push(notification.url); }
+                          }}
                           className={`flex gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer ${
                             notification.unread ? "bg-indigo-50/50 dark:bg-indigo-900/20" : ""
                           }`}

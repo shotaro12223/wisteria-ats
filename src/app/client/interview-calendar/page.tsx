@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import type { ReactElement } from "react";
+import { usePathname } from "next/navigation";
 import ClientPortalLayout from "@/components/client/ClientPortalLayout";
 import Link from "next/link";
 
@@ -72,6 +73,10 @@ const TYPE_LABELS: Record<string, { label: string; icon: ReactElement }> = {
 };
 
 export default function InterviewCalendarPage() {
+  const pathname = usePathname();
+  const adminCompanyId = pathname?.match(/^\/client\/companies\/([^/]+)/)?.[1] ?? null;
+  const linkBase = adminCompanyId ? `/client/companies/${adminCompanyId}` : "/client";
+
   const [schedules, setSchedules] = useState<InterviewSchedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(() => {
@@ -94,6 +99,9 @@ export default function InterviewCalendarPage() {
           start: startDate.toISOString().split("T")[0],
           end: endDate.toISOString().split("T")[0],
         });
+        if (adminCompanyId) {
+          params.set("companyId", adminCompanyId);
+        }
 
         const res = await fetch(`/api/client/interview-schedules?${params}`, {
           cache: "no-store",
@@ -408,7 +416,7 @@ export default function InterviewCalendarPage() {
                           </div>
 
                           <Link
-                            href={`/client/applicants/${schedule.applicant_id}`}
+                            href={`${linkBase}/applicants/${schedule.applicant_id}`}
                             className="block mb-1 hover:underline"
                           >
                             <span className="text-[13px] font-medium text-slate-900 dark:text-slate-100 hover:text-indigo-600">
@@ -529,7 +537,7 @@ export default function InterviewCalendarPage() {
                       {/* Details */}
                       <div className="flex-1 min-w-0">
                         <Link
-                          href={`/client/applicants/${schedule.applicant_id}`}
+                          href={`${linkBase}/applicants/${schedule.applicant_id}`}
                           className="text-[13px] font-medium text-slate-900 dark:text-slate-100 hover:text-indigo-600 hover:underline"
                         >
                           {schedule.applicants?.name || "応募者"}

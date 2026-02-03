@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import ClientPortalLayout from "@/components/client/ClientPortalLayout";
 import { usePushNotification } from "@/hooks/usePushNotification";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -21,6 +22,10 @@ type Company = {
 };
 
 export default function ClientSettingsPage() {
+  const pathname = usePathname();
+  const adminCompanyId = pathname?.match(/^\/client\/companies\/([^/]+)/)?.[1] ?? null;
+  const isReadOnly = !!adminCompanyId;
+
   const [clientUser, setClientUser] = useState<ClientUser | null>(null);
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
@@ -54,21 +59,34 @@ export default function ClientSettingsPage() {
       setLoading(true);
 
       try {
-        // Fetch client user info
-        const userRes = await fetch("/api/client/me", { cache: "no-store" });
-        if (userRes.ok) {
-          const userData = await userRes.json();
-          if (userData.ok && userData.data) {
-            setClientUser(userData.data);
+        if (adminCompanyId) {
+          // Admin mode: just fetch company info directly
+          const companyRes = await fetch(`/api/client/companies/${adminCompanyId}`, {
+            cache: "no-store",
+          });
+          if (companyRes.ok) {
+            const companyData = await companyRes.json();
+            if (companyData.ok) {
+              setCompany(companyData.data);
+            }
+          }
+        } else {
+          // Fetch client user info
+          const userRes = await fetch("/api/client/me", { cache: "no-store" });
+          if (userRes.ok) {
+            const userData = await userRes.json();
+            if (userData.ok && userData.data) {
+              setClientUser(userData.data);
 
-            // Fetch company info
-            const companyRes = await fetch(`/api/client/companies/${userData.data.company_id}`, {
-              cache: "no-store",
-            });
-            if (companyRes.ok) {
-              const companyData = await companyRes.json();
-              if (companyData.ok) {
-                setCompany(companyData.data);
+              // Fetch company info
+              const companyRes = await fetch(`/api/client/companies/${userData.data.company_id}`, {
+                cache: "no-store",
+              });
+              if (companyRes.ok) {
+                const companyData = await companyRes.json();
+                if (companyData.ok) {
+                  setCompany(companyData.data);
+                }
               }
             }
           }
@@ -81,10 +99,11 @@ export default function ClientSettingsPage() {
     }
 
     loadData();
-  }, []);
+  }, [adminCompanyId]);
 
   async function handlePasswordChange(e: React.FormEvent) {
     e.preventDefault();
+    if (isReadOnly) return;
     setPasswordChanging(true);
     setPasswordMessage(null);
 
@@ -228,7 +247,8 @@ export default function ClientSettingsPage() {
               </div>
             )}
 
-            {/* Password Change */}
+            {/* Password Change - hidden for admin read-only */}
+            {!isReadOnly && (
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/60 p-6 shadow-sm">
               <h2 className="text-[15px] font-semibold text-slate-900 dark:text-slate-100 mb-5 flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
@@ -305,9 +325,10 @@ export default function ClientSettingsPage() {
                 </button>
               </form>
             </div>
+            )}
 
-            {/* Push Notifications */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/60 p-6 shadow-sm">
+            {/* Push Notifications - hidden for admin read-only */}
+            {!isReadOnly && <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/60 p-6 shadow-sm">
               <h2 className="text-[15px] font-semibold text-slate-900 dark:text-slate-100 mb-5 flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center">
                   <svg className="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.75}>
@@ -394,9 +415,9 @@ export default function ClientSettingsPage() {
                       </div>
                     )}
 
-                    <div className="p-3 bg-indigo-50/50 border border-indigo-100 rounded-lg">
-                      <h4 className="text-[12px] font-medium text-indigo-800 mb-1.5">通知を受け取る内容</h4>
-                      <ul className="space-y-1 text-[11px] text-indigo-700">
+                    <div className="p-3 bg-indigo-50/50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-800/40 rounded-lg">
+                      <h4 className="text-[12px] font-medium text-indigo-800 dark:text-indigo-300 mb-1.5">通知を受け取る内容</h4>
+                      <ul className="space-y-1 text-[11px] text-indigo-700 dark:text-indigo-400">
                         <li className="flex items-center gap-1.5">
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -420,10 +441,10 @@ export default function ClientSettingsPage() {
                   </>
                 )}
               </div>
-            </div>
+            </div>}
 
-            {/* Theme Settings */}
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/60 p-6 shadow-sm">
+            {/* Theme Settings - hidden for admin read-only */}
+            {!isReadOnly && <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/60 p-6 shadow-sm">
               <h2 className="text-[15px] font-semibold text-slate-900 dark:text-slate-100 mb-5 flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
                   <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.75}>
@@ -498,7 +519,7 @@ export default function ClientSettingsPage() {
                   「システム」を選択すると、端末の設定に合わせて自動で切り替わります
                 </p>
               </div>
-            </div>
+            </div>}
           </div>
 
           {/* Sidebar */}

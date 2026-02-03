@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
       ),
       client_users:client_user_id (
         id,
-        name,
+        display_name,
         email
       )
     `)

@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import ClientPortalLayout from "@/components/client/ClientPortalLayout";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import DatePicker from "@/components/DatePicker";
 import { debounce } from "@/lib/debounce";
 
@@ -59,6 +60,9 @@ type PaginationInfo = {
 };
 
 export default function ClientApplicantsPage() {
+  const pathname = usePathname();
+  const adminCompanyId = pathname?.match(/^\/client\/companies\/([^/]+)/)?.[1] ?? null;
+  const linkBase = adminCompanyId ? `/client/companies/${adminCompanyId}` : "/client";
   const [applicants, setApplicants] = useState<ApplicantWithTags[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
@@ -108,9 +112,10 @@ export default function ClientApplicantsPage() {
   useEffect(() => {
     async function loadData() {
       setLoading(true);
+      const qs = adminCompanyId ? `companyId=${adminCompanyId}&` : "";
 
       // Fetch jobs for filter dropdown
-      const jobsRes = await fetch("/api/client/jobs", { cache: "no-store" });
+      const jobsRes = await fetch(`/api/client/jobs?${qs}`.replace(/[?&]$/, ""), { cache: "no-store" });
       if (jobsRes.ok) {
         try {
           const jobsData = await jobsRes.json();
@@ -125,7 +130,7 @@ export default function ClientApplicantsPage() {
       }
 
       // Fetch tags for filter
-      const tagsRes = await fetch("/api/client/tags", { cache: "no-store" });
+      const tagsRes = await fetch(`/api/client/tags?${qs}`.replace(/[?&]$/, ""), { cache: "no-store" });
       if (tagsRes.ok) {
         try {
           const tagsData = await tagsRes.json();
@@ -139,7 +144,7 @@ export default function ClientApplicantsPage() {
 
       // Fetch paginated applicants
       const applicantsRes = await fetch(
-        `/api/client/applicants?page=${currentPage}&limit=50`,
+        `/api/client/applicants?${qs}page=${currentPage}&limit=50`,
         { cache: "no-store" }
       );
 
@@ -199,7 +204,7 @@ export default function ClientApplicantsPage() {
     }
 
     loadData();
-  }, [currentPage]);
+  }, [currentPage, adminCompanyId]);
 
   // Apply filters and search using useMemo for better performance
   const filteredApplicants = useMemo(() => {
@@ -644,7 +649,7 @@ export default function ClientApplicantsPage() {
                           {new Date(applicant.applied_at).toLocaleDateString("ja-JP")}
                         </td>
                         <td className="px-5 py-3 text-right">
-                          <Link href={`/client/applicants/${applicant.id}`} className="text-[12px] font-medium text-indigo-600 hover:text-indigo-700 hover:underline">
+                          <Link href={`${linkBase}/applicants/${applicant.id}`} className="text-[12px] font-medium text-indigo-600 hover:text-indigo-700 hover:underline">
                             詳細 →
                           </Link>
                         </td>
@@ -667,7 +672,7 @@ export default function ClientApplicantsPage() {
               return (
                 <Link
                   key={applicant.id}
-                  href={`/client/applicants/${applicant.id}`}
+                  href={`${linkBase}/applicants/${applicant.id}`}
                   className="group bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700/60 p-5 shadow-sm hover:shadow-md hover:border-slate-300 transition-all"
                 >
                   <div className="flex items-start justify-between mb-3">
@@ -735,7 +740,7 @@ export default function ClientApplicantsPage() {
                             return (
                               <Link
                                 key={applicant.id}
-                                href={`/client/applicants/${applicant.id}`}
+                                href={`${linkBase}/applicants/${applicant.id}`}
                                 className="block p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-600 hover:bg-indigo-50/30 dark:hover:bg-indigo-900/30 transition-all"
                               >
                                 <p className="text-[13px] font-medium text-slate-800 dark:text-slate-100 mb-0.5">{applicant.name}</p>

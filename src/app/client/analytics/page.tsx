@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import ClientPortalLayout from "@/components/client/ClientPortalLayout";
 
 type AnalyticsData = {
@@ -79,14 +80,17 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function ClientAnalyticsPage() {
+  const pathname = usePathname();
+  const adminCompanyId = pathname?.match(/^\/client\/companies\/([^/]+)/)?.[1] ?? null;
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadAnalytics() {
       setLoading(true);
+      const qs = adminCompanyId ? `?companyId=${adminCompanyId}` : "";
       try {
-        const res = await fetch("/api/client/analytics", { cache: "no-store" });
+        const res = await fetch(`/api/client/analytics${qs}`, { cache: "no-store" });
         const data = await res.json();
         if (data.ok) {
           setAnalytics(data.data);
@@ -98,7 +102,7 @@ export default function ClientAnalyticsPage() {
       }
     }
     loadAnalytics();
-  }, []);
+  }, [adminCompanyId]);
 
   if (loading) {
     return (

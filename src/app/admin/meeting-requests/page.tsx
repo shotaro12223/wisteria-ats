@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type MeetingRequest = {
   id: string;
@@ -40,27 +40,37 @@ export default function AdminMeetingRequestsPage() {
 
   // Modal state
   const [selectedRequest, setSelectedRequest] = useState<MeetingRequest | null>(null);
-  const [proposedDates, setProposedDates] = useState<string[]>([""]);
+  const [proposedDates, setProposedDates] = useState<string[]>(["", "", ""]);
   const [adminMessage, setAdminMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   // Load requests
-  useEffect(() => {
-    async function loadRequests() {
-      setLoading(true);
-      const url = filterStatus
-        ? `/api/admin/meeting-requests?status=${filterStatus}`
-        : "/api/admin/meeting-requests";
-      const res = await fetch(url, { cache: "no-store" });
-      const data = await res.json();
-      setLoading(false);
+  const filterRef = useRef(filterStatus);
+  filterRef.current = filterStatus;
 
-      if (data.ok) {
-        setRequests(data.data || []);
-      }
+  const loadRequests = useCallback(async () => {
+    const url = filterRef.current
+      ? `/api/admin/meeting-requests?status=${filterRef.current}`
+      : "/api/admin/meeting-requests";
+    const res = await fetch(url, { cache: "no-store" });
+    const data = await res.json();
+    setLoading(false);
+
+    if (data.ok) {
+      setRequests(data.data || []);
     }
+  }, []);
+
+  useEffect(() => {
+    setLoading(true);
     loadRequests();
-  }, [filterStatus]);
+  }, [filterStatus, loadRequests]);
+
+  // Polling every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(loadRequests, 5000);
+    return () => clearInterval(interval);
+  }, [loadRequests]);
 
   // Handle propose dates
   async function handleProposeDates() {
@@ -98,7 +108,7 @@ export default function AdminMeetingRequestsPage() {
           setRequests(reloadData.data || []);
         }
         setSelectedRequest(null);
-        setProposedDates([""]);
+        setProposedDates(["", "", ""]);
         setAdminMessage("");
       } else {
         alert(data.error?.message || "エラーが発生しました");
@@ -279,7 +289,7 @@ export default function AdminMeetingRequestsPage() {
                     <button
                       onClick={() => {
                         setSelectedRequest(request);
-                        setProposedDates([""]);
+                        setProposedDates(["", "", ""]);
                         setAdminMessage("");
                       }}
                       className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
@@ -326,32 +336,16 @@ export default function AdminMeetingRequestsPage() {
                 <label className="block text-sm font-medium mb-2">候補日時</label>
                 {proposedDates.map((date, index) => (
                   <div key={index} className="flex items-center gap-2 mb-2">
+                    <span className="text-xs font-medium text-slate-500 w-16 shrink-0">第{index + 1}希望</span>
                     <input
                       type="datetime-local"
                       className="flex-1 rounded-md border px-3 py-2 text-sm"
                       value={date}
                       onChange={(e) => updateDateInput(index, e.target.value)}
                     />
-                    {proposedDates.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeDateInput(index)}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    )}
                   </div>
                 ))}
-                <button
-                  type="button"
-                  onClick={addDateInput}
-                  className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
-                >
-                  + 候補日を追加
-                </button>
+                <p className="text-xs text-slate-400 mt-1">※ 少なくとも1つは入力してください</p>
               </div>
 
               <div>
@@ -379,7 +373,7 @@ export default function AdminMeetingRequestsPage() {
               <button
                 onClick={() => {
                   setSelectedRequest(null);
-                  setProposedDates([""]);
+                  setProposedDates(["", "", ""]);
                   setAdminMessage("");
                 }}
                 className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-700 border rounded-lg hover:bg-slate-50 transition-colors"

@@ -100,6 +100,10 @@ const BULK_LABEL_MAP: Record<string, string> = {
   "請求書送付先": "invoiceAddress",
   "募集勤務地郵便番号（デフォルト）": "defaultWorkLocationPostalCode",
   "募集勤務地（郵便番号）": "defaultWorkLocationPostalCode",
+
+  "応募通知手段": "notificationMethod",
+  "通知手段": "notificationMethod",
+  "担当者生年月日": "contactPersonBirthDate",
 };
 
 function parseBulkPairs(
@@ -176,6 +180,9 @@ export function CompanyForm({ initialValue, submitLabel = "保存", onSubmit }: 
     invoiceAddress: init.invoiceAddress ?? "",
 
     defaultWorkLocationPostalCode: init.defaultWorkLocationPostalCode ?? "",
+
+    notificationMethod: init.notificationMethod ?? "",
+    contactPersonBirthDate: init.contactPersonBirthDate ?? "",
   }));
 
   const [bulkOpen, setBulkOpen] = useState(false);
@@ -387,6 +394,20 @@ export function CompanyForm({ initialValue, submitLabel = "保存", onSubmit }: 
               ※ ここに入れたメール宛の応募メールを、会社ページに自動でまとめます。
             </div>
           </div>
+
+          <div>
+            <div className={labelBase()}>応募通知手段</div>
+            <input
+              className={inputBase()}
+              style={{ borderColor: "var(--border)" }}
+              value={v.notificationMethod}
+              onChange={(e) => setField("notificationMethod", e.target.value)}
+              placeholder="例）LINE、チャットワーク、メール"
+            />
+            <div className={helpBase()}>
+              ※ 応募があった際の通知先（LINE、チャットワークなど）
+            </div>
+          </div>
         </div>
       </div>
 
@@ -503,6 +524,16 @@ export function CompanyForm({ initialValue, submitLabel = "保存", onSubmit }: 
               value={v.contactPersonNameKana}
               onChange={(e) => setField("contactPersonNameKana", e.target.value)}
               placeholder="例）さとう"
+            />
+          </div>
+
+          <div>
+            <div className={labelBase()}>担当者生年月日</div>
+            <DatePicker
+              className={inputBase()}
+              style={{ borderColor: "var(--border)" }}
+              value={v.contactPersonBirthDate}
+              onChange={(val) => setField("contactPersonBirthDate", val)}
             />
           </div>
         </div>

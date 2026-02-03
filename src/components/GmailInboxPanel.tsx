@@ -1116,7 +1116,7 @@ export default function GmailInboxPanel() {
   const typedSummary = useTypingEffect(summaryText, 25);
 
   return (
-    <div className="space-y-3 max-w-full">
+    <div className="space-y-4">
       {/* Hero - Premium Design (Work Queue Style) */}
       <div
         ref={heroRef}

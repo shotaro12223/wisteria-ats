@@ -389,16 +389,12 @@ export default function WorkQueuePage() {
       if (json.ok) {
         console.log("[WorkQueue Debug] Setting items count:", json.data?.length);
         console.log("[WorkQueue Debug] First 3 items:", json.data?.slice(0, 3));
-        console.log("[WorkQueue Debug] Checking priority and is_acknowledged fields:");
-        json.data?.slice(0, 3).forEach((item: any, index: number) => {
-          console.log(`[WorkQueue Debug] Item ${index}:`, {
-            id: item.id,
-            title: item.title,
-            status: item.status,
-            priority: item.priority,
-            is_acknowledged: item.is_acknowledged
+        // 初回ロード時に既存タスクIDを通知済みとしてマークし、ページ表示時の一括通知を防ぐ
+        if (notifiedTaskIdsRef.current.size === 0 && json.data.length > 0) {
+          json.data.forEach((item: any) => {
+            notifiedTaskIdsRef.current.add(item.id);
           });
-        });
+        }
         setItems(json.data);
       } else {
         console.error("API returned ok: false", json);

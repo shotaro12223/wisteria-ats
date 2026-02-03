@@ -3,15 +3,18 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { supabaseRoute } from "@/lib/supabaseRoute";
 import { recordApplicantView, recordApplicantUpdate, recordApplicantDelete } from "@/lib/auditLog";
 
-type ApplicantStatus = "NEW" | "DOC" | "INT" | "OFFER" | "NG";
+type ApplicantStatus = "NEW" | "DOC" | "INT" | "OFFER" | "NG" | "PRE_NG" | "SHARED";
 
 // Status transition rules
 const VALID_TRANSITIONS: Record<ApplicantStatus, ApplicantStatus[]> = {
-  "NEW": ["DOC", "INT", "NG"],
-  "DOC": ["INT", "NG"],
-  "INT": ["OFFER", "NG"],
-  "OFFER": ["NG"],  // Can withdraw offer
-  "NG": []  // Cannot transition from NG
+  "NEW": ["PRE_NG", "SHARED"],
+  "PRE_NG": ["NEW"],           // 取り消し可能
+  "SHARED": ["PRE_NG"],        // 差し戻し可能
+  // Legacy statuses - no new transitions allowed
+  "DOC": [],
+  "INT": [],
+  "OFFER": [],
+  "NG": [],
 };
 
 type ApplicantOut = {
@@ -134,7 +137,7 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
     const newStatus = body.status.toUpperCase() as ApplicantStatus;
 
     // Validate status value
-    if (!["NEW", "DOC", "INT", "OFFER", "NG"].includes(newStatus)) {
+    if (!["NEW", "DOC", "INT", "OFFER", "NG", "PRE_NG", "SHARED"].includes(newStatus)) {
       return NextResponse.json(
         { ok: false, error: { message: "無効なステータスです" } },
         { status: 400 }

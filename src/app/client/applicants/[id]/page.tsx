@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, usePathname } from "next/navigation";
 import ClientPortalLayout from "@/components/client/ClientPortalLayout";
 import Link from "next/link";
 import DatePicker from "@/components/DatePicker";
@@ -19,16 +19,6 @@ import {
   HIRE_INTENTION_LABELS,
   PASS_STRENGTHS_OPTIONS,
 } from "@/lib/types";
-
-type InterviewSlot = {
-  id: string;
-  available_date: string;
-  start_time: string;
-  end_time: string;
-  note: string | null;
-  is_booked: boolean;
-  booked_applicant_id: string | null;
-};
 
 type Applicant = {
   id: string;
@@ -94,6 +84,9 @@ const INTERVIEW_RESULT_COLORS: Record<InterviewResult, string> = {
 export default function ClientApplicantDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const pathname = usePathname();
+  const isReadOnly = !!pathname?.match(/^\/client\/companies\//);
+  const linkBase = pathname?.match(/^\/client\/companies\/[^/]+/)?.[0] ?? "/client";
   const [applicant, setApplicant] = useState<Applicant | null>(null);
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
@@ -112,10 +105,6 @@ export default function ClientApplicantDetailPage() {
   const [tagMenuOpen, setTagMenuOpen] = useState(false);
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState("#6366f1");
-
-  // Interview booking state (read-only for client)
-  const [bookedSlot, setBookedSlot] = useState<InterviewSlot | null>(null);
-  const [slotsLoading, setSlotsLoading] = useState(true);
 
   // Feedback state
   const [feedbackList, setFeedbackList] = useState<ApplicantClientFeedback[]>([]);
@@ -209,26 +198,9 @@ export default function ClientApplicantDetailPage() {
     }
   }, []);
 
-  // Load interview slot (read-only)
-  const loadInterviewSlots = useCallback(async (applicantId: string) => {
-    setSlotsLoading(true);
-    try {
-      const res = await fetch(`/api/client/applicants/${applicantId}/interview-booking`, {
-        cache: "no-store",
-      });
-      const data = await res.json();
-      if (data.ok) {
-        setBookedSlot(data.data.bookedSlot || null);
-      }
-    } catch (e) {
-      console.error("Failed to load interview slots:", e);
-    } finally {
-      setSlotsLoading(false);
-    }
-  }, []);
-
   // Add tag to applicant
   const handleAddTag = async (tagId: string) => {
+    if (isReadOnly) return;
     if (!applicant) return;
     try {
       const res = await fetch(`/api/client/applicants/${applicant.id}/tags`, {
@@ -247,6 +219,7 @@ export default function ClientApplicantDetailPage() {
 
   // Remove tag from applicant
   const handleRemoveTag = async (tagId: string) => {
+    if (isReadOnly) return;
     if (!applicant) return;
     try {
       const res = await fetch(`/api/client/applicants/${applicant.id}/tags`, {
@@ -265,6 +238,7 @@ export default function ClientApplicantDetailPage() {
 
   // Create new tag
   const handleCreateTag = async () => {
+    if (isReadOnly) return;
     if (!newTagName.trim()) return;
     try {
       const res = await fetch("/api/client/tags", {
@@ -287,6 +261,7 @@ export default function ClientApplicantDetailPage() {
 
   // Submit new comment
   const handleSubmitComment = async () => {
+    if (isReadOnly) return;
     if (!newComment.trim() || isSubmitting || !applicant) return;
 
     setIsSubmitting(true);
@@ -310,6 +285,7 @@ export default function ClientApplicantDetailPage() {
 
   // Delete comment
   const handleDeleteComment = async (commentId: string) => {
+    if (isReadOnly) return;
     if (!applicant) return;
 
     try {
@@ -329,6 +305,7 @@ export default function ClientApplicantDetailPage() {
 
   // Submit feedback
   const handleSubmitFeedback = async () => {
+    if (isReadOnly) return;
     if (!applicant || feedbackSubmitting) return;
 
     setFeedbackSubmitting(true);
@@ -378,6 +355,7 @@ export default function ClientApplicantDetailPage() {
 
   // Delete feedback
   const handleDeleteFeedback = async (feedbackId: string) => {
+    if (isReadOnly) return;
     if (!applicant || !confirm("このフィードバックを削除しますか？")) return;
 
     try {
@@ -417,7 +395,6 @@ export default function ClientApplicantDetailPage() {
         loadComments(applicantData.data.id);
         loadTags(applicantData.data.id);
         loadFeedback(applicantData.data.id);
-        loadInterviewSlots(applicantData.data.id);
 
         if (applicantData.data.job_id) {
           const jobRes = await fetch(`/api/client/jobs/${applicantData.data.job_id}`, {
@@ -442,7 +419,7 @@ export default function ClientApplicantDetailPage() {
     if (params.id) {
       loadData();
     }
-  }, [params.id, router, loadComments, loadTags, loadFeedback, loadInterviewSlots]);
+  }, [params.id, router, loadComments, loadTags, loadFeedback]);
 
   if (loading) {
     return (
@@ -480,7 +457,7 @@ export default function ClientApplicantDetailPage() {
       <div className="space-y-6">
         {/* Breadcrumb */}
         <div className="flex items-center gap-1.5 text-[12px] text-slate-500">
-          <Link href="/client/applicants" className="hover:text-indigo-600 transition-colors">
+          <Link href={`${linkBase}/applicants`} className="hover:text-indigo-600 transition-colors">
             応募者一覧
           </Link>
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -516,20 +493,20 @@ export default function ClientApplicantDetailPage() {
                     >
                       <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: at.client_tags.color }}></span>
                       {at.client_tags.name}
-                      <button
+                      {!isReadOnly && <button
                         onClick={() => handleRemoveTag(at.tag_id)}
                         className="ml-0.5 hover:bg-slate-200 rounded-full p-0.5 transition-colors"
                       >
                         <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                         </svg>
-                      </button>
+                      </button>}
                     </span>
                   ) : null
                 )}
 
               {/* Add Tag Button */}
-              <div className="relative">
+              {!isReadOnly && <div className="relative">
                 <button
                   onClick={() => setTagMenuOpen(!tagMenuOpen)}
                   className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium border border-dashed border-slate-300 text-slate-500 hover:border-slate-400 hover:text-slate-600 transition-colors"
@@ -589,7 +566,7 @@ export default function ClientApplicantDetailPage() {
                     </div>
                   </div>
                 )}
-              </div>
+              </div>}
             </div>
           </div>
         </div>
@@ -639,56 +616,6 @@ export default function ClientApplicantDetailPage() {
               </div>
             </div>
 
-            {/* Interview Schedule Section (Read-only) */}
-            <div className="bg-white rounded-xl border border-slate-200/60 p-6 shadow-sm">
-              <h2 className="text-[15px] font-semibold text-slate-900 mb-5 flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
-                  <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.75}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                面接日程
-              </h2>
-
-              {slotsLoading ? (
-                <div className="text-center py-6 text-[13px] text-slate-500">読み込み中...</div>
-              ) : bookedSlot ? (
-                <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-50 to-violet-50 border border-indigo-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="px-2 py-0.5 rounded-full bg-indigo-600 text-white text-[10px] font-semibold">
-                      確定
-                    </span>
-                  </div>
-                  <p className="text-[14px] font-semibold text-slate-900">
-                    {new Date(bookedSlot.available_date).toLocaleDateString("ja-JP", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                      weekday: "short",
-                    })}
-                  </p>
-                  <p className="text-[13px] text-slate-600 mt-0.5">
-                    {bookedSlot.start_time.slice(0, 5)} 〜 {bookedSlot.end_time.slice(0, 5)}
-                  </p>
-                  {bookedSlot.note && (
-                    <p className="text-[11px] text-slate-500 mt-2">{bookedSlot.note}</p>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center py-6">
-                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
-                    <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <p className="text-[13px] text-slate-600 font-medium">面接日程は未確定です</p>
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    Wisteria担当者が日程を調整中です
-                  </p>
-                </div>
-              )}
-            </div>
-
             {/* Client Feedback Section */}
             <div className="bg-white rounded-xl border border-slate-200/60 p-6 shadow-sm">
               <div className="flex items-center justify-between mb-5">
@@ -701,7 +628,7 @@ export default function ClientApplicantDetailPage() {
                   面接フィードバック
                   <span className="text-[12px] font-normal text-slate-400 ml-1">({feedbackList.length})</span>
                 </h2>
-                <button
+                {!isReadOnly && <button
                   onClick={() => setFeedbackFormOpen(!feedbackFormOpen)}
                   className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-[12px] font-medium hover:bg-indigo-700 transition-colors flex items-center gap-1.5"
                 >
@@ -709,7 +636,7 @@ export default function ClientApplicantDetailPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                   </svg>
                   結果を入力
-                </button>
+                </button>}
               </div>
 
               {/* Feedback Form */}
@@ -725,7 +652,7 @@ export default function ClientApplicantDetailPage() {
                         <select
                           value={feedbackForm.interview_type}
                           onChange={(e) => setFeedbackForm({ ...feedbackForm, interview_type: e.target.value as InterviewType })}
-                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-[12px] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                          className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-[12px] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                         >
                           {Object.entries(INTERVIEW_TYPE_LABELS).map(([value, label]) => (
                             <option key={value} value={value}>{label}</option>
@@ -737,7 +664,7 @@ export default function ClientApplicantDetailPage() {
                         <DatePicker
                           value={feedbackForm.interview_date}
                           onChange={(value) => setFeedbackForm({ ...feedbackForm, interview_date: value })}
-                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-[12px] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                          className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-[12px] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                         />
                       </div>
                       <div>
@@ -747,7 +674,7 @@ export default function ClientApplicantDetailPage() {
                           value={feedbackForm.interviewer_name}
                           onChange={(e) => setFeedbackForm({ ...feedbackForm, interviewer_name: e.target.value })}
                           placeholder="山田 太郎"
-                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-[12px] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                          className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-[12px] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                         />
                       </div>
                     </div>
@@ -775,12 +702,12 @@ export default function ClientApplicantDetailPage() {
 
                     {/* Fail Reason (if fail) */}
                     {feedbackForm.interview_result === "fail" && (
-                      <div className="p-4 bg-rose-50 rounded-lg border border-rose-100">
-                        <label className="block text-[11px] font-medium text-rose-700 mb-2">不合格理由</label>
+                      <div className="p-4 bg-rose-50 dark:bg-rose-900/20 rounded-lg border border-rose-100 dark:border-rose-800">
+                        <label className="block text-[11px] font-medium text-rose-700 dark:text-rose-300 mb-2">不合格理由</label>
                         <select
                           value={feedbackForm.fail_reason}
                           onChange={(e) => setFeedbackForm({ ...feedbackForm, fail_reason: e.target.value as FailReason })}
-                          className="w-full px-3 py-2 rounded-lg border border-rose-200 text-[12px] focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 mb-3"
+                          className="w-full px-3 py-2 rounded-lg border border-rose-200 dark:border-rose-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-[12px] focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 mb-3"
                         >
                           <option value="">選択してください</option>
                           {Object.entries(FAIL_REASON_LABELS).map(([value, label]) => (
@@ -886,7 +813,7 @@ export default function ClientApplicantDetailPage() {
                         value={feedbackForm.next_action}
                         onChange={(e) => setFeedbackForm({ ...feedbackForm, next_action: e.target.value })}
                         placeholder="例：二次面接へ進む、オファー提示など"
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-[12px] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-[12px] focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                       />
                     </div>
                   </div>
@@ -933,7 +860,7 @@ export default function ClientApplicantDetailPage() {
                             {new Date(fb.interview_date).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" })}
                           </span>
                         </div>
-                        <button
+                        {!isReadOnly && <button
                           onClick={() => handleDeleteFeedback(fb.id)}
                           className="text-slate-400 hover:text-rose-500 transition-colors p-0.5"
                           title="削除"
@@ -941,7 +868,7 @@ export default function ClientApplicantDetailPage() {
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
-                        </button>
+                        </button>}
                       </div>
 
                       {/* Fail details */}
@@ -1041,7 +968,7 @@ export default function ClientApplicantDetailPage() {
               </h2>
 
               {/* New Comment Input */}
-              <div className="mb-5">
+              {!isReadOnly && <div className="mb-5">
                 <textarea
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
@@ -1058,7 +985,7 @@ export default function ClientApplicantDetailPage() {
                     {isSubmitting ? "送信中..." : "メモを追加"}
                   </button>
                 </div>
-              </div>
+              </div>}
 
               {/* Comments List */}
               <div className="space-y-3">
@@ -1081,7 +1008,7 @@ export default function ClientApplicantDetailPage() {
                             </span>
                           </div>
                         </div>
-                        {comment.client_user_id === currentUserId && (
+                        {!isReadOnly && comment.client_user_id === currentUserId && (
                           <button onClick={() => handleDeleteComment(comment.id)} className="text-slate-400 hover:text-red-500 transition-colors p-0.5" title="削除">
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                               <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -1099,22 +1026,6 @@ export default function ClientApplicantDetailPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Interview Availability Link */}
-            <Link
-              href="/client/interview-availability"
-              className="block bg-white rounded-xl border border-slate-200/60 p-5 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all"
-            >
-              <div className="flex items-center gap-2.5 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center">
-                  <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.75}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <span className="text-[14px] font-semibold text-slate-900">面接対応可能日を管理</span>
-              </div>
-              <p className="text-[12px] text-slate-500">カレンダーで面接可能な日程を設定・変更できます</p>
-            </Link>
-
             <div className="bg-white rounded-xl border border-slate-200/60 p-5 shadow-sm">
               <h3 className="text-[14px] font-semibold text-slate-900 mb-3 flex items-center gap-2">
                 <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.75}>

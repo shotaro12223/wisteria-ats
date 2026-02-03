@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -119,6 +119,9 @@ export default function ModernDock({ expanded, onExpandedChange }: DockProps) {
 
   const { companyId, jobId } = useMemo(() => parseContext(pathname), [pathname]);
   const hasContext = !!companyId;
+  const workQueueAdminPaths = ["/admin/meeting-requests", "/admin/support"];
+  const isWorkQueue = pathname.startsWith("/work-queue") || workQueueAdminPaths.some((p) => pathname.startsWith(p));
+  const isAdmin = pathname.startsWith("/admin") && !isWorkQueue;
 
   // Fetch company name
   useEffect(() => {
@@ -157,6 +160,42 @@ export default function ModernDock({ expanded, onExpandedChange }: DockProps) {
     }
     return items;
   }, [companyId, jobId]);
+
+  const adminItems = useMemo(() => {
+    if (!isAdmin) return [];
+    return [
+      { href: "/admin/users", icon: "settings", label: "ユーザー管理" },
+      { href: "/admin/client-users", icon: "building", label: "会社アカウント" },
+    ];
+  }, [isAdmin]);
+
+  // Badge counts for work queue sidebar
+  const [badges, setBadges] = useState<{ support: number; meetings: number }>({ support: 0, meetings: 0 });
+
+  const loadBadges = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/badges", { cache: "no-store" });
+      const data = await res.json();
+      if (data.ok) setBadges(data.data);
+    } catch {
+      // silent
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isWorkQueue) return;
+    loadBadges();
+    const interval = setInterval(loadBadges, 10000);
+    return () => clearInterval(interval);
+  }, [isWorkQueue, loadBadges]);
+
+  const workQueueItems = useMemo(() => {
+    if (!isWorkQueue) return [];
+    return [
+      { href: "/admin/meeting-requests", icon: "calendar", label: "打ち合わせ希望", badge: badges.meetings },
+      { href: "/admin/support", icon: "chat", label: "問い合わせ", badge: badges.support },
+    ];
+  }, [isWorkQueue, badges]);
 
   return (
     <div
@@ -238,6 +277,96 @@ export default function ModernDock({ expanded, onExpandedChange }: DockProps) {
 
             <div className="flex flex-col gap-0.5">
               {contextItems.map((item) => {
+                const active = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={[
+                      "flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg transition-all duration-150",
+                      active
+                        ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300"
+                        : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-700 dark:hover:text-slate-300",
+                    ].join(" ")}
+                  >
+                    <span className="shrink-0 w-4 h-4 flex items-center justify-center opacity-70">
+                      {ICONS[item.icon]}
+                    </span>
+                    <span className={[
+                      "text-xs font-medium whitespace-nowrap transition-all duration-200",
+                      expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden",
+                    ].join(" ")}>
+                      {item.label}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        {/* Work Queue context navigation */}
+        {isWorkQueue && workQueueItems.length > 0 && (
+          <>
+            <div className="my-3 mx-2 h-px bg-gradient-to-r from-slate-200 dark:from-slate-700 to-transparent" />
+
+            {expanded && (
+              <div className="px-3 py-1.5 mb-1">
+                <div className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">クライアント</div>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-0.5">
+              {workQueueItems.map((item) => {
+                const active = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={[
+                      "relative flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg transition-all duration-150 overflow-hidden",
+                      active
+                        ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300"
+                        : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-700 dark:hover:text-slate-300",
+                    ].join(" ")}
+                  >
+                    <span className="shrink-0 w-4 h-4 flex items-center justify-center opacity-70">
+                      {ICONS[item.icon]}
+                    </span>
+                    <span className={[
+                      "text-xs font-medium whitespace-nowrap transition-all duration-200",
+                      expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden",
+                    ].join(" ")}>
+                      {item.label}
+                    </span>
+                    {item.badge > 0 && (
+                      <span className={[
+                        "flex-shrink-0 inline-flex items-center justify-center min-w-[16px] h-[16px] px-1 rounded-full bg-red-500 text-white text-[9px] font-bold leading-none",
+                        expanded ? "ml-auto" : "absolute top-0 right-0",
+                      ].join(" ")}>
+                        {item.badge}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        {/* Admin context navigation */}
+        {isAdmin && adminItems.length > 0 && (
+          <>
+            <div className="my-3 mx-2 h-px bg-gradient-to-r from-slate-200 dark:from-slate-700 to-transparent" />
+
+            {expanded && (
+              <div className="px-3 py-1.5 mb-1">
+                <div className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">管理</div>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-0.5">
+              {adminItems.map((item) => {
                 const active = pathname === item.href;
                 return (
                   <Link

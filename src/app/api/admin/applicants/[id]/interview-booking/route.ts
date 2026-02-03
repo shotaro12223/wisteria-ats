@@ -1,6 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { supabaseRoute } from "@/lib/supabaseRoute";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { notifyInterviewScheduled } from "@/lib/sendClientNotification";
 
 export const dynamic = "force-dynamic";
 
@@ -93,6 +94,20 @@ export async function POST(
     );
   }
 
+  // Get applicant info
+  const { data: applicant, error: appError } = await supabaseAdmin
+    .from("applicants")
+    .select("id, company_id, name")
+    .eq("id", applicantId)
+    .single();
+
+  if (appError || !applicant) {
+    return NextResponse.json(
+      { ok: false, error: { message: "Applicant not found" } },
+      { status: 404 }
+    );
+  }
+
   // Parse body
   let body: { slotId?: string; manualDate?: string; startTime?: string; endTime?: string };
   try {
@@ -158,6 +173,29 @@ export async function POST(
       );
     }
 
+    // Insert into interview_schedules for client calendar
+    await supabaseAdmin.from("interview_schedules").insert({
+      company_id: applicant.company_id,
+      applicant_id: applicantId,
+      interview_date: updatedSlot.available_date,
+      start_time: updatedSlot.start_time,
+      end_time: updatedSlot.end_time,
+      interview_type: "onsite",
+      status: "scheduled",
+      availability_id: slotId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+
+    // Send notification to client
+    notifyInterviewScheduled(
+      applicant.company_id,
+      applicant.name,
+      applicantId,
+      updatedSlot.available_date,
+      updatedSlot.start_time
+    ).catch((e) => console.error("[Interview Booking] Notification error:", e));
+
     return NextResponse.json({
       ok: true,
       data: {
@@ -207,6 +245,28 @@ export async function POST(
         { status: 500 }
       );
     }
+
+    // Insert into interview_schedules for client calendar
+    await supabaseAdmin.from("interview_schedules").insert({
+      company_id: applicant.company_id,
+      applicant_id: applicantId,
+      interview_date: manualDate,
+      start_time: start,
+      end_time: end,
+      interview_type: "onsite",
+      status: "scheduled",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+
+    // Send notification to client
+    notifyInterviewScheduled(
+      applicant.company_id,
+      applicant.name,
+      applicantId,
+      manualDate,
+      start
+    ).catch((e) => console.error("[Interview Booking] Notification error:", e));
 
     return NextResponse.json({
       ok: true,
@@ -276,6 +336,13 @@ export async function DELETE(
       updated_at: new Date().toISOString(),
     })
     .eq("booked_applicant_id", applicantId);
+
+  // Remove from interview_schedules
+  await supabaseAdmin
+    .from("interview_schedules")
+    .delete()
+    .eq("applicant_id", applicantId)
+    .eq("status", "scheduled");
 
   return NextResponse.json({ ok: true, data: null });
 }

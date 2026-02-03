@@ -171,6 +171,50 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // 打ち合わせ確定イベント
+    try {
+      const { data: meetings, error: meetingsError } = await supabase
+        .from("meeting_requests")
+        .select("id, subject, company_id, confirmed_date")
+        .eq("status", "confirmed");
+
+      if (!meetingsError && meetings) {
+        // 打ち合わせの company_id も会社名取得
+        const meetingCompanyIds = meetings
+          .map((m) => String(m.company_id ?? "").trim())
+          .filter((id) => id && !companyNameById.has(id));
+
+        if (meetingCompanyIds.length > 0) {
+          const { data: extraCompanies } = await supabase
+            .from("companies")
+            .select("id, company_name")
+            .in("id", meetingCompanyIds);
+
+          for (const c of extraCompanies || []) {
+            companyNameById.set(String(c.id), String(c.company_name ?? ""));
+          }
+        }
+
+        for (const meeting of meetings) {
+          if (meeting.confirmed_date) {
+            const companyId = String(meeting.company_id ?? "");
+            const companyName = companyNameById.get(companyId) || "会社名不明";
+            const dateStr = meeting.confirmed_date.slice(0, 10);
+
+            events.push({
+              id: `meeting-${meeting.id}`,
+              title: `${companyName} - ${meeting.subject}`,
+              date: dateStr,
+              type: "meeting",
+              meetingRequestId: meeting.id,
+            });
+          }
+        }
+      }
+    } catch {
+      // silent - meeting_requests might not exist
+    }
+
     // 年月フィルタ（オプション）
     let filteredEvents = events;
     if (year && month) {

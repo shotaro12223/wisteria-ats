@@ -61,6 +61,8 @@ export default function NewCompanyPage() {
         applicationReceptionNumber: (next as any).applicationReceptionNumber || "",
         invoiceAddress: (next as any).invoiceAddress || "",
         defaultWorkLocationPostalCode: (next as any).defaultWorkLocationPostalCode || "",
+        notificationMethod: (next as any).notificationMethod || "",
+        contactPersonBirthDate: (next as any).contactPersonBirthDate || "",
       };
 
       const payload = {

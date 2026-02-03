@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, usePathname } from "next/navigation";
 import ClientPortalLayout from "@/components/client/ClientPortalLayout";
 import Link from "next/link";
 
@@ -117,6 +117,9 @@ function InfoRow({ label, value }: { label: string; value?: string | null }) {
 export default function ClientJobDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const pathname = usePathname();
+  const adminCompanyId = pathname?.match(/^\/client\/companies\/([^/]+)/)?.[1] ?? null;
+  const linkBase = adminCompanyId ? `/client/companies/${adminCompanyId}` : "/client";
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -132,10 +135,10 @@ export default function ClientJobDetailPage() {
         if (data.ok) {
           setJob(data.data);
         } else {
-          router.replace("/client/jobs");
+          router.replace(`${linkBase}/jobs`);
         }
       } else {
-        router.replace("/client/jobs");
+        router.replace(`${linkBase}/jobs`);
       }
 
       setLoading(false);
@@ -180,7 +183,7 @@ export default function ClientJobDetailPage() {
       <div className="space-y-6">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-          <Link href="/client/jobs" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+          <Link href={`${linkBase}/jobs`} className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
             求人一覧
           </Link>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -449,7 +452,7 @@ export default function ClientJobDetailPage() {
               </p>
             </div>
             <Link
-              href="/client/applicants"
+              href={`${linkBase}/applicants`}
               className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition-colors shadow-sm"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
