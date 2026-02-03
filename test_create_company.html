@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>会社追加テスト</title>
+</head>
+<body>
+    <h1>会社追加テスト</h1>
+    <input type="text" id="companyName" placeholder="会社名" value="社会福祉法人玉川学園テスト">
+    <button onclick="createCompany()">会社を追加</button>
+    <pre id="result"></pre>
+
+    <script>
+    async function createCompany() {
+        const companyName = document.getElementById('companyName').value;
+        document.getElementById('result').textContent = '送信中...';
+
+        try {
+            const res = await fetch('http://localhost:3000/api/companies', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ companyName })
+            });
+
+            const data = await res.json();
+            document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+
+            if (data.ok) {
+                alert('成功！company_id: ' + data.company.id);
+            } else {
+                alert('エラー: ' + JSON.stringify(data.error));
+            }
+        } catch (e) {
+            document.getElementById('result').textContent = 'エラー: ' + e.message;
+            alert('エラー: ' + e.message);
+        }
+    }
+    </script>
+</body>
+</html>

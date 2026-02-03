@@ -1,0 +1,25 @@
+
+> wisteria-ats@0.1.0 dev
+> next dev
+
+⚠ Port 3000 is in use by process 19148, using available port 3005 instead.
+▲ Next.js 16.1.0 (Turbopack)
+- Local:         http://localhost:3005
+- Network:       http://192.168.11.2:3005
+- Environments: .env.local
+- Experiments (use with caution):
+  · optimizePackageImports
+
+✓ Starting...
+
+-----
+[1m[31mFATAL[39m[0m: An unexpected Turbopack error occurred. A panic log has been written to C:\Users\chron\AppData\Local\Temp\next-panic-1c037c42f0052238d4453dc2f6f6a717.log.
+
+To help make Turbopack better, report this error by ]8;;https://github.com/vercel/next.js/discussions/new?category=turbopack-error-report&title=Turbopack%20Error%3A%20%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E3%81%8C%E6%8B%92%E5%90%A6%E3%81%95%E3%82%8C%E3%81%BE%E3%81%97%E3%81%9F%E3%80%82%20%28os%20error%205%29&body=Turbopack%20version%3A%20%60ea1df5f2%60%0ANext.js%20version%3A%20%600.0.0%60%0A%0AError%20message%3A%0A%60%60%60%0A%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9%E3%81%8C%E6%8B%92%E5%90%A6%E3%81%95%E3%82%8C%E3%81%BE%E3%81%97%E3%81%9F%E3%80%82%20%28os%20error%205%29%0A%60%60%60&labels=Turbopack,Turbopack%20Panic%20Backtrace\clicking here.]8;;\
+-----
+
+Error [TurbopackInternalError]: アクセスが拒否されました。 (os error 5)
+    at <unknown> (TurbopackInternalError: アクセスが拒否されました。 (os error 5)) {
+  location: undefined
+}
+[?25h

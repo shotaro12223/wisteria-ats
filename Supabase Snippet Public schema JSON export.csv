@@ -1,0 +1,3759 @@
+schema_dump_json
+"{
+    ""enums"": null,
+    ""schema"": ""public"",
+    ""tables"": [
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": false
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""company_id"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""job_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""applied_at"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""date"",
+                    ""data_type"": ""date""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""site_key"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""name"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 7,
+                    ""name"": ""status"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 8,
+                    ""name"": ""note"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 9,
+                    ""name"": ""created_at"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 10,
+                    ""name"": ""updated_at"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 11,
+                    ""name"": ""source"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 12,
+                    ""name"": ""source_ref"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""applicants_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX applicants_pkey ON public.applicants USING btree (id)""
+                }
+            ],
+            ""policies"": [
+                {
+                    ""cmd"": ""ALL"",
+                    ""qual"": ""(EXISTS ( SELECT 1\n   FROM workspace_members wm\n  WHERE (wm.user_id = auth.uid())))"",
+                    ""roles"": [
+                        ""public""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""members full access applicants"",
+                    ""with_check"": ""(EXISTS ( SELECT 1\n   FROM workspace_members wm\n  WHERE (wm.user_id = auth.uid())))""
+                }
+            ],
+            ""triggers"": null,
+            ""table_name"": ""applicants"",
+            ""constraints"": [
+                {
+                    ""name"": ""applicants_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": false
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": ""gen_random_uuid()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""message_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""room_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""user_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""file_name"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""mime_type"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 7,
+                    ""name"": ""size_bytes"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""int8"",
+                    ""data_type"": ""bigint""
+                },
+                {
+                    ""pos"": 8,
+                    ""name"": ""storage_path"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 9,
+                    ""name"": ""public_url"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 10,
+                    ""name"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""chat_message_attachments_message_id_idx"",
+                    ""definition"": ""CREATE INDEX chat_message_attachments_message_id_idx ON public.chat_message_attachments USING btree (message_id)""
+                },
+                {
+                    ""name"": ""chat_message_attachments_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX chat_message_attachments_pkey ON public.chat_message_attachments USING btree (id)""
+                },
+                {
+                    ""name"": ""chat_message_attachments_room_id_idx"",
+                    ""definition"": ""CREATE INDEX chat_message_attachments_room_id_idx ON public.chat_message_attachments USING btree (room_id)""
+                }
+            ],
+            ""policies"": null,
+            ""triggers"": null,
+            ""table_name"": ""chat_message_attachments"",
+            ""constraints"": [
+                {
+                    ""name"": ""chat_message_attachments_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": false
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": ""gen_random_uuid()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""message_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""user_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""emoji"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""chat_message_reactions_message_id_user_id_emoji_key"",
+                    ""definition"": ""CREATE UNIQUE INDEX chat_message_reactions_message_id_user_id_emoji_key ON public.chat_message_reactions USING btree (message_id, user_id, emoji)""
+                },
+                {
+                    ""name"": ""chat_message_reactions_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX chat_message_reactions_pkey ON public.chat_message_reactions USING btree (id)""
+                },
+                {
+                    ""name"": ""idx_chat_message_reactions_message"",
+                    ""definition"": ""CREATE INDEX idx_chat_message_reactions_message ON public.chat_message_reactions USING btree (message_id)""
+                },
+                {
+                    ""name"": ""idx_chat_message_reactions_user"",
+                    ""definition"": ""CREATE INDEX idx_chat_message_reactions_user ON public.chat_message_reactions USING btree (user_id)""
+                }
+            ],
+            ""policies"": null,
+            ""triggers"": null,
+            ""table_name"": ""chat_message_reactions"",
+            ""constraints"": [
+                {
+                    ""name"": ""chat_message_reactions_message_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (message_id) REFERENCES chat_messages(id) ON DELETE CASCADE""
+                },
+                {
+                    ""name"": ""chat_message_reactions_user_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE""
+                },
+                {
+                    ""name"": ""chat_message_reactions_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                },
+                {
+                    ""name"": ""chat_message_reactions_message_id_user_id_emoji_key"",
+                    ""type"": ""u"",
+                    ""definition"": ""UNIQUE (message_id, user_id, emoji)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": true
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": ""gen_random_uuid()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""room_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""user_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""body"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""kind"",
+                    ""default"": ""'text'::text"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 7,
+                    ""name"": ""task_id"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 8,
+                    ""name"": ""reply_to_message_id"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 9,
+                    ""name"": ""mentions"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""jsonb"",
+                    ""data_type"": ""jsonb""
+                },
+                {
+                    ""pos"": 10,
+                    ""name"": ""attachments"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""jsonb"",
+                    ""data_type"": ""jsonb""
+                },
+                {
+                    ""pos"": 11,
+                    ""name"": ""reply_to"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 12,
+                    ""name"": ""pinned"",
+                    ""default"": ""false"",
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""bool"",
+                    ""data_type"": ""boolean""
+                },
+                {
+                    ""pos"": 13,
+                    ""name"": ""edited_at"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 14,
+                    ""name"": ""deleted_at"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 15,
+                    ""name"": ""original_body"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""chat_messages_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX chat_messages_pkey ON public.chat_messages USING btree (id)""
+                },
+                {
+                    ""name"": ""chat_messages_room_created_at_idx"",
+                    ""definition"": ""CREATE INDEX chat_messages_room_created_at_idx ON public.chat_messages USING btree (room_id, created_at)""
+                },
+                {
+                    ""name"": ""idx_chat_messages_deleted"",
+                    ""definition"": ""CREATE INDEX idx_chat_messages_deleted ON public.chat_messages USING btree (deleted_at) WHERE (deleted_at IS NULL)""
+                },
+                {
+                    ""name"": ""idx_chat_messages_edited"",
+                    ""definition"": ""CREATE INDEX idx_chat_messages_edited ON public.chat_messages USING btree (edited_at) WHERE (edited_at IS NOT NULL)""
+                },
+                {
+                    ""name"": ""idx_chat_messages_pinned"",
+                    ""definition"": ""CREATE INDEX idx_chat_messages_pinned ON public.chat_messages USING btree (pinned) WHERE (pinned = true)""
+                },
+                {
+                    ""name"": ""idx_chat_messages_reply_to"",
+                    ""definition"": ""CREATE INDEX idx_chat_messages_reply_to ON public.chat_messages USING btree (reply_to)""
+                }
+            ],
+            ""policies"": [
+                {
+                    ""cmd"": ""INSERT"",
+                    ""qual"": null,
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""chat_messages_insert_member"",
+                    ""with_check"": ""(is_workspace_member(auth.uid()) AND (user_id = auth.uid()) AND is_room_member(room_id, auth.uid()))""
+                },
+                {
+                    ""cmd"": ""SELECT"",
+                    ""qual"": ""(is_workspace_member(auth.uid()) AND is_room_member(room_id, auth.uid()))"",
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""chat_messages_select_member"",
+                    ""with_check"": null
+                }
+            ],
+            ""triggers"": [
+                {
+                    ""name"": ""trg_chat_touch_room_last_message"",
+                    ""event"": ""INSERT"",
+                    ""timing"": ""AFTER"",
+                    ""statement"": ""EXECUTE FUNCTION chat_touch_room_last_message()""
+                }
+            ],
+            ""table_name"": ""chat_messages"",
+            ""constraints"": [
+                {
+                    ""name"": ""chat_messages_reply_to_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (reply_to) REFERENCES chat_messages(id) ON DELETE SET NULL""
+                },
+                {
+                    ""name"": ""chat_messages_room_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (room_id) REFERENCES chat_rooms(id) ON DELETE CASCADE""
+                },
+                {
+                    ""name"": ""chat_messages_task_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (task_id) REFERENCES chat_tasks(id) ON DELETE SET NULL""
+                },
+                {
+                    ""name"": ""chat_messages_user_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE RESTRICT""
+                },
+                {
+                    ""name"": ""chat_messages_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": true
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": ""gen_random_uuid()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""room_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""user_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""muted"",
+                    ""default"": ""false"",
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""bool"",
+                    ""data_type"": ""boolean""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""chat_notification_settings_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX chat_notification_settings_pkey ON public.chat_notification_settings USING btree (id)""
+                },
+                {
+                    ""name"": ""chat_notification_settings_room_id_user_id_key"",
+                    ""definition"": ""CREATE UNIQUE INDEX chat_notification_settings_room_id_user_id_key ON public.chat_notification_settings USING btree (room_id, user_id)""
+                }
+            ],
+            ""policies"": [
+                {
+                    ""cmd"": ""ALL"",
+                    ""qual"": ""(EXISTS ( SELECT 1\n   FROM workspace_members\n  WHERE (workspace_members.user_id = auth.uid())))"",
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""Members can manage notification   \r\n  settings"",
+                    ""with_check"": null
+                }
+            ],
+            ""triggers"": null,
+            ""table_name"": ""chat_notification_settings"",
+            ""constraints"": [
+                {
+                    ""name"": ""chat_notification_settings_room_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (room_id) REFERENCES chat_rooms(id) ON DELETE CASCADE""
+                },
+                {
+                    ""name"": ""chat_notification_settings_user_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE""
+                },
+                {
+                    ""name"": ""chat_notification_settings_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                },
+                {
+                    ""name"": ""chat_notification_settings_room_id_user_id_key"",
+                    ""type"": ""u"",
+                    ""definition"": ""UNIQUE (room_id, user_id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": false
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": ""gen_random_uuid()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""room_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""message_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""pinned_by"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""pinned_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""chat_pinned_messages_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX chat_pinned_messages_pkey ON public.chat_pinned_messages USING btree (id)""
+                },
+                {
+                    ""name"": ""chat_pinned_messages_room_id_message_id_key"",
+                    ""definition"": ""CREATE UNIQUE INDEX chat_pinned_messages_room_id_message_id_key ON public.chat_pinned_messages USING btree (room_id, message_id)""
+                },
+                {
+                    ""name"": ""idx_chat_pinned_messages_message"",
+                    ""definition"": ""CREATE INDEX idx_chat_pinned_messages_message ON public.chat_pinned_messages USING btree (message_id)""
+                },
+                {
+                    ""name"": ""idx_chat_pinned_messages_room"",
+                    ""definition"": ""CREATE INDEX idx_chat_pinned_messages_room ON public.chat_pinned_messages USING btree (room_id)""
+                }
+            ],
+            ""policies"": null,
+            ""triggers"": null,
+            ""table_name"": ""chat_pinned_messages"",
+            ""constraints"": [
+                {
+                    ""name"": ""chat_pinned_messages_message_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (message_id) REFERENCES chat_messages(id) ON DELETE CASCADE""
+                },
+                {
+                    ""name"": ""chat_pinned_messages_pinned_by_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (pinned_by) REFERENCES auth.users(id) ON DELETE CASCADE""
+                },
+                {
+                    ""name"": ""chat_pinned_messages_room_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (room_id) REFERENCES chat_rooms(id) ON DELETE CASCADE""
+                },
+                {
+                    ""name"": ""chat_pinned_messages_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                },
+                {
+                    ""name"": ""chat_pinned_messages_room_id_message_id_key"",
+                    ""type"": ""u"",
+                    ""definition"": ""UNIQUE (room_id, message_id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": true
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": ""gen_random_uuid()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""room_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""user_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""last_read_message_id"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""last_read_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""chat_read_receipts_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX chat_read_receipts_pkey ON public.chat_read_receipts USING btree (id)""
+                },
+                {
+                    ""name"": ""chat_read_receipts_room_id_user_id_key"",
+                    ""definition"": ""CREATE UNIQUE INDEX chat_read_receipts_room_id_user_id_key ON public.chat_read_receipts USING btree (room_id, user_id)""
+                },
+                {
+                    ""name"": ""idx_chat_read_receipts_room_user"",
+                    ""definition"": ""CREATE INDEX idx_chat_read_receipts_room_user ON public.chat_read_receipts USING btree (room_id, user_id)""
+                }
+            ],
+            ""policies"": [
+                {
+                    ""cmd"": ""ALL"",
+                    ""qual"": ""(EXISTS ( SELECT 1\n   FROM workspace_members\n  WHERE (workspace_members.user_id = auth.uid())))"",
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""Members can manage read receipts"",
+                    ""with_check"": null
+                }
+            ],
+            ""triggers"": null,
+            ""table_name"": ""chat_read_receipts"",
+            ""constraints"": [
+                {
+                    ""name"": ""chat_read_receipts_last_read_message_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (last_read_message_id) REFERENCES chat_messages(id) ON DELETE SET NULL""
+                },
+                {
+                    ""name"": ""chat_read_receipts_room_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (room_id) REFERENCES chat_rooms(id) ON DELETE CASCADE""
+                },
+                {
+                    ""name"": ""chat_read_receipts_user_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE""
+                },
+                {
+                    ""name"": ""chat_read_receipts_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                },
+                {
+                    ""name"": ""chat_read_receipts_room_id_user_id_key"",
+                    ""type"": ""u"",
+                    ""definition"": ""UNIQUE (room_id, user_id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": true
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""room_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""user_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""joined_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""last_read_at"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""muted"",
+                    ""default"": ""false"",
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""bool"",
+                    ""data_type"": ""boolean""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""muted_until"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 7,
+                    ""name"": ""pinned"",
+                    ""default"": ""false"",
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""bool"",
+                    ""data_type"": ""boolean""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""chat_room_members_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX chat_room_members_pkey ON public.chat_room_members USING btree (room_id, user_id)""
+                },
+                {
+                    ""name"": ""chat_room_members_user_id_idx"",
+                    ""definition"": ""CREATE INDEX chat_room_members_user_id_idx ON public.chat_room_members USING btree (user_id)""
+                },
+                {
+                    ""name"": ""idx_chat_room_members_muted"",
+                    ""definition"": ""CREATE INDEX idx_chat_room_members_muted ON public.chat_room_members USING btree (user_id, muted) WHERE (muted = true)""
+                },
+                {
+                    ""name"": ""idx_chat_room_members_pinned"",
+                    ""definition"": ""CREATE INDEX idx_chat_room_members_pinned ON public.chat_room_members USING btree (user_id, pinned) WHERE (pinned = true)""
+                }
+            ],
+            ""policies"": [
+                {
+                    ""cmd"": ""DELETE"",
+                    ""qual"": ""(is_workspace_member(auth.uid()) AND (user_id = auth.uid()))"",
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""chat_room_members_delete_self"",
+                    ""with_check"": null
+                },
+                {
+                    ""cmd"": ""INSERT"",
+                    ""qual"": null,
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""chat_room_members_insert_member"",
+                    ""with_check"": ""(is_workspace_member(auth.uid()) AND is_workspace_member(user_id) AND is_room_member(room_id, auth.uid()))""
+                },
+                {
+                    ""cmd"": ""SELECT"",
+                    ""qual"": ""(is_workspace_member(auth.uid()) AND is_room_member(room_id, auth.uid()))"",
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""chat_room_members_select_member"",
+                    ""with_check"": null
+                },
+                {
+                    ""cmd"": ""INSERT"",
+                    ""qual"": null,
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""members can add room members"",
+                    ""with_check"": ""(EXISTS ( SELECT 1\n   FROM workspace_members wm\n  WHERE (wm.user_id = auth.uid())))""
+                },
+                {
+                    ""cmd"": ""INSERT"",
+                    ""qual"": null,
+                    ""roles"": [
+                        ""public""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""members can add self to room"",
+                    ""with_check"": ""((EXISTS ( SELECT 1\n   FROM workspace_members wm\n  WHERE (wm.user_id = auth.uid()))) AND (user_id = auth.uid()))""
+                },
+                {
+                    ""cmd"": ""INSERT"",
+                    ""qual"": null,
+                    ""roles"": [
+                        ""public""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""members can add self to room v2"",
+                    ""with_check"": ""((EXISTS ( SELECT 1\n   FROM workspace_members wm\n  WHERE (wm.user_id = auth.uid()))) AND (user_id = auth.uid()))""
+                },
+                {
+                    ""cmd"": ""SELECT"",
+                    ""qual"": ""((EXISTS ( SELECT 1\n   FROM workspace_members wm\n  WHERE (wm.user_id = auth.uid()))) AND (user_id = auth.uid()))"",
+                    ""roles"": [
+                        ""public""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""members can read own memberships"",
+                    ""with_check"": null
+                },
+                {
+                    ""cmd"": ""SELECT"",
+                    ""qual"": ""((EXISTS ( SELECT 1\n   FROM workspace_members wm\n  WHERE (wm.user_id = auth.uid()))) AND (user_id = auth.uid()))"",
+                    ""roles"": [
+                        ""public""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""members can read own memberships v2"",
+                    ""with_check"": null
+                },
+                {
+                    ""cmd"": ""SELECT"",
+                    ""qual"": ""(EXISTS ( SELECT 1\n   FROM workspace_members wm\n  WHERE (wm.user_id = auth.uid())))"",
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""members can read room members"",
+                    ""with_check"": null
+                }
+            ],
+            ""triggers"": null,
+            ""table_name"": ""chat_room_members"",
+            ""constraints"": [
+                {
+                    ""name"": ""chat_room_members_room_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (room_id) REFERENCES chat_rooms(id) ON DELETE CASCADE""
+                },
+                {
+                    ""name"": ""chat_room_members_user_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE""
+                },
+                {
+                    ""name"": ""chat_room_members_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (room_id, user_id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": true
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": ""gen_random_uuid()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""type"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""name"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""created_by"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""last_message_at"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 7,
+                    ""name"": ""last_message_preview"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 8,
+                    ""name"": ""icon_url"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 9,
+                    ""name"": ""description"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 10,
+                    ""name"": ""background_color"",
+                    ""default"": ""'#ffffff'::text"",
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""chat_rooms_last_message_at_idx"",
+                    ""definition"": ""CREATE INDEX chat_rooms_last_message_at_idx ON public.chat_rooms USING btree (last_message_at DESC NULLS LAST)""
+                },
+                {
+                    ""name"": ""chat_rooms_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX chat_rooms_pkey ON public.chat_rooms USING btree (id)""
+                },
+                {
+                    ""name"": ""idx_chat_rooms_type"",
+                    ""definition"": ""CREATE INDEX idx_chat_rooms_type ON public.chat_rooms USING btree (type)""
+                }
+            ],
+            ""policies"": [
+                {
+                    ""cmd"": ""DELETE"",
+                    ""qual"": ""(id IN ( SELECT chat_room_members.room_id\n   FROM chat_room_members\n  WHERE (chat_room_members.user_id = auth.uid())))"",
+                    ""roles"": [
+                        ""public""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""Members can delete rooms they belong to"",
+                    ""with_check"": null
+                },
+                {
+                    ""cmd"": ""INSERT"",
+                    ""qual"": null,
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""chat_rooms_insert_workspace_member"",
+                    ""with_check"": ""(is_workspace_member(auth.uid()) AND (created_by = auth.uid()))""
+                },
+                {
+                    ""cmd"": ""SELECT"",
+                    ""qual"": ""(is_workspace_member(auth.uid()) AND is_room_member(id, auth.uid()))"",
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""chat_rooms_select_member"",
+                    ""with_check"": null
+                },
+                {
+                    ""cmd"": ""UPDATE"",
+                    ""qual"": ""(is_workspace_member(auth.uid()) AND is_room_member(id, auth.uid()))"",
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""chat_rooms_update_member_limited"",
+                    ""with_check"": ""(is_workspace_member(auth.uid()) AND is_room_member(id, auth.uid()))""
+                },
+                {
+                    ""cmd"": ""INSERT"",
+                    ""qual"": null,
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""members can create rooms"",
+                    ""with_check"": ""((EXISTS ( SELECT 1\n   FROM workspace_members wm\n  WHERE (wm.user_id = auth.uid()))) AND (created_by = auth.uid()))""
+                },
+                {
+                    ""cmd"": ""SELECT"",
+                    ""qual"": ""(EXISTS ( SELECT 1\n   FROM workspace_members wm\n  WHERE (wm.user_id = auth.uid())))"",
+                    ""roles"": [
+                        ""public""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""members can read rooms"",
+                    ""with_check"": null
+                },
+                {
+                    ""cmd"": ""SELECT"",
+                    ""qual"": ""((EXISTS ( SELECT 1\n   FROM workspace_members wm\n  WHERE (wm.user_id = auth.uid()))) AND (EXISTS ( SELECT 1\n   FROM chat_room_members m\n  WHERE ((m.room_id = chat_rooms.id) AND (m.user_id = auth.uid())))))"",
+                    ""roles"": [
+                        ""public""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""members can read rooms v2"",
+                    ""with_check"": null
+                }
+            ],
+            ""triggers"": null,
+            ""table_name"": ""chat_rooms"",
+            ""constraints"": [
+                {
+                    ""name"": ""chat_rooms_type_check"",
+                    ""type"": ""c"",
+                    ""definition"": ""CHECK ((type = ANY (ARRAY['direct'::text, 'group'::text])))""
+                },
+                {
+                    ""name"": ""chat_rooms_created_by_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE RESTRICT""
+                },
+                {
+                    ""name"": ""chat_rooms_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": true
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": ""gen_random_uuid()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""room_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""title"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""assignee_user_id"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""due_date"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""date"",
+                    ""data_type"": ""date""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""created_by"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 7,
+                    ""name"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 8,
+                    ""name"": ""status"",
+                    ""default"": ""'open'::text"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 9,
+                    ""name"": ""updated_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""chat_tasks_due_date_idx"",
+                    ""definition"": ""CREATE INDEX chat_tasks_due_date_idx ON public.chat_tasks USING btree (due_date)""
+                },
+                {
+                    ""name"": ""chat_tasks_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX chat_tasks_pkey ON public.chat_tasks USING btree (id)""
+                },
+                {
+                    ""name"": ""chat_tasks_room_id_created_at_idx"",
+                    ""definition"": ""CREATE INDEX chat_tasks_room_id_created_at_idx ON public.chat_tasks USING btree (room_id, created_at DESC)""
+                },
+                {
+                    ""name"": ""chat_tasks_room_id_idx"",
+                    ""definition"": ""CREATE INDEX chat_tasks_room_id_idx ON public.chat_tasks USING btree (room_id)""
+                },
+                {
+                    ""name"": ""chat_tasks_room_id_status_created_at_idx"",
+                    ""definition"": ""CREATE INDEX chat_tasks_room_id_status_created_at_idx ON public.chat_tasks USING btree (room_id, status, created_at DESC)""
+                },
+                {
+                    ""name"": ""idx_chat_tasks_assignee"",
+                    ""definition"": ""CREATE INDEX idx_chat_tasks_assignee ON public.chat_tasks USING btree (assignee_user_id)""
+                },
+                {
+                    ""name"": ""idx_chat_tasks_status"",
+                    ""definition"": ""CREATE INDEX idx_chat_tasks_status ON public.chat_tasks USING btree (status)""
+                }
+            ],
+            ""policies"": [
+                {
+                    ""cmd"": ""ALL"",
+                    ""qual"": ""(EXISTS ( SELECT 1\n   FROM workspace_members\n  WHERE (workspace_members.user_id = auth.uid())))"",
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""Members can manage tasks"",
+                    ""with_check"": null
+                },
+                {
+                    ""cmd"": ""ALL"",
+                    ""qual"": ""(EXISTS ( SELECT 1\n   FROM workspace_members wm\n  WHERE (wm.user_id = auth.uid())))"",
+                    ""roles"": [
+                        ""public""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""members full access chat_tasks"",
+                    ""with_check"": ""(EXISTS ( SELECT 1\n   FROM workspace_members wm\n  WHERE (wm.user_id = auth.uid())))""
+                }
+            ],
+            ""triggers"": [
+                {
+                    ""name"": ""chat_tasks_set_updated_at"",
+                    ""event"": ""UPDATE"",
+                    ""timing"": ""BEFORE"",
+                    ""statement"": ""EXECUTE FUNCTION set_updated_at()""
+                }
+            ],
+            ""table_name"": ""chat_tasks"",
+            ""constraints"": [
+                {
+                    ""name"": ""chat_tasks_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": false
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""company_name"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""created_at"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""updated_at"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""company_profile"",
+                    ""default"": ""'{}'::jsonb"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""jsonb"",
+                    ""data_type"": ""jsonb""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""application_email"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""companies_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX companies_pkey ON public.companies USING btree (id)""
+                }
+            ],
+            ""policies"": [
+                {
+                    ""cmd"": ""ALL"",
+                    ""qual"": ""(EXISTS ( SELECT 1\n   FROM workspace_members wm\n  WHERE (wm.user_id = auth.uid())))"",
+                    ""roles"": [
+                        ""public""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""members full access companies"",
+                    ""with_check"": ""(EXISTS ( SELECT 1\n   FROM workspace_members wm\n  WHERE (wm.user_id = auth.uid())))""
+                }
+            ],
+            ""triggers"": null,
+            ""table_name"": ""companies"",
+            ""constraints"": [
+                {
+                    ""name"": ""companies_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": true
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": ""gen_random_uuid()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""company_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""type"",
+                    ""default"": ""'note'::text"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""title"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""body"",
+                    ""default"": ""''::text"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""occurred_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 7,
+                    ""name"": ""created_by"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 8,
+                    ""name"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 9,
+                    ""name"": ""updated_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""company_activities_company_created_at_idx"",
+                    ""definition"": ""CREATE INDEX company_activities_company_created_at_idx ON public.company_activities USING btree (company_id, created_at DESC)""
+                },
+                {
+                    ""name"": ""company_activities_company_occurred_at_idx"",
+                    ""definition"": ""CREATE INDEX company_activities_company_occurred_at_idx ON public.company_activities USING btree (company_id, occurred_at DESC)""
+                },
+                {
+                    ""name"": ""company_activities_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX company_activities_pkey ON public.company_activities USING btree (id)""
+                }
+            ],
+            ""policies"": [
+                {
+                    ""cmd"": ""ALL"",
+                    ""qual"": ""is_workspace_member(auth.uid())"",
+                    ""roles"": [
+                        ""public""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""members full access company_activities"",
+                    ""with_check"": ""is_workspace_member(auth.uid())""
+                }
+            ],
+            ""triggers"": [
+                {
+                    ""name"": ""company_activities_set_updated_at"",
+                    ""event"": ""UPDATE"",
+                    ""timing"": ""BEFORE"",
+                    ""statement"": ""EXECUTE FUNCTION set_updated_at()""
+                }
+            ],
+            ""table_name"": ""company_activities"",
+            ""constraints"": [
+                {
+                    ""name"": ""company_activities_company_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE""
+                },
+                {
+                    ""name"": ""company_activities_created_by_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE RESTRICT""
+                },
+                {
+                    ""name"": ""company_activities_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": true
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""company_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""status"",
+                    ""default"": ""'active'::text"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""priority"",
+                    ""default"": ""0"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""int4"",
+                    ""data_type"": ""integer""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""owner_user_id"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""profile"",
+                    ""default"": ""'{}'::jsonb"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""jsonb"",
+                    ""data_type"": ""jsonb""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""memo"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 7,
+                    ""name"": ""tags"",
+                    ""default"": ""'{}'::text[]"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""_text"",
+                    ""data_type"": ""ARRAY""
+                },
+                {
+                    ""pos"": 8,
+                    ""name"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 9,
+                    ""name"": ""updated_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 10,
+                    ""name"": ""company_name"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 11,
+                    ""name"": ""application_email"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""company_records_owner_user_id_idx"",
+                    ""definition"": ""CREATE INDEX company_records_owner_user_id_idx ON public.company_records USING btree (owner_user_id)""
+                },
+                {
+                    ""name"": ""company_records_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX company_records_pkey ON public.company_records USING btree (company_id)""
+                },
+                {
+                    ""name"": ""company_records_status_idx"",
+                    ""definition"": ""CREATE INDEX company_records_status_idx ON public.company_records USING btree (status)""
+                }
+            ],
+            ""policies"": [
+                {
+                    ""cmd"": ""ALL"",
+                    ""qual"": ""is_workspace_member(auth.uid())"",
+                    ""roles"": [
+                        ""public""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""members full access company_records"",
+                    ""with_check"": ""is_workspace_member(auth.uid())""
+                }
+            ],
+            ""triggers"": [
+                {
+                    ""name"": ""company_records_set_updated_at"",
+                    ""event"": ""UPDATE"",
+                    ""timing"": ""BEFORE"",
+                    ""statement"": ""EXECUTE FUNCTION set_updated_at()""
+                },
+                {
+                    ""name"": ""trg_sync_companies_from_company_records"",
+                    ""event"": ""INSERT"",
+                    ""timing"": ""AFTER"",
+                    ""statement"": ""EXECUTE FUNCTION sync_companies_from_company_records()""
+                },
+                {
+                    ""name"": ""trg_sync_companies_from_company_records"",
+                    ""event"": ""UPDATE"",
+                    ""timing"": ""AFTER"",
+                    ""statement"": ""EXECUTE FUNCTION sync_companies_from_company_records()""
+                }
+            ],
+            ""table_name"": ""company_records"",
+            ""constraints"": [
+                {
+                    ""name"": ""company_records_company_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE""
+                },
+                {
+                    ""name"": ""company_records_owner_user_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (owner_user_id) REFERENCES auth.users(id) ON DELETE SET NULL""
+                },
+                {
+                    ""name"": ""company_records_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (company_id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": true
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": ""gen_random_uuid()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""company"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""name"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""email"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""message"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 7,
+                    ""name"": ""source"",
+                    ""default"": ""'web'::text"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 8,
+                    ""name"": ""status"",
+                    ""default"": ""'new'::text"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 9,
+                    ""name"": ""phone"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""contact_requests_created_at_idx"",
+                    ""definition"": ""CREATE INDEX contact_requests_created_at_idx ON public.contact_requests USING btree (created_at DESC)""
+                },
+                {
+                    ""name"": ""contact_requests_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX contact_requests_pkey ON public.contact_requests USING btree (id)""
+                },
+                {
+                    ""name"": ""contact_requests_status_idx"",
+                    ""definition"": ""CREATE INDEX contact_requests_status_idx ON public.contact_requests USING btree (status)""
+                }
+            ],
+            ""policies"": [
+                {
+                    ""cmd"": ""INSERT"",
+                    ""qual"": null,
+                    ""roles"": [
+                        ""anon""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""allow anonymous insert"",
+                    ""with_check"": ""true""
+                }
+            ],
+            ""triggers"": null,
+            ""table_name"": ""contact_requests"",
+            ""constraints"": [
+                {
+                    ""name"": ""contact_requests_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": true
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": ""gen_random_uuid()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""deal_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""type"",
+                    ""default"": ""'note'::text"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""body"",
+                    ""default"": ""''::text"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""occurred_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""created_by"",
+                    ""default"": ""auth.uid()"",
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 7,
+                    ""name"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 8,
+                    ""name"": ""meta"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""jsonb"",
+                    ""data_type"": ""jsonb""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""deal_activities_deal_id_idx"",
+                    ""definition"": ""CREATE INDEX deal_activities_deal_id_idx ON public.deal_activities USING btree (deal_id, occurred_at DESC)""
+                },
+                {
+                    ""name"": ""deal_activities_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX deal_activities_pkey ON public.deal_activities USING btree (id)""
+                }
+            ],
+            ""policies"": [
+                {
+                    ""cmd"": ""INSERT"",
+                    ""qual"": null,
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""deal_activities_insert"",
+                    ""with_check"": ""true""
+                },
+                {
+                    ""cmd"": ""SELECT"",
+                    ""qual"": ""true"",
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""deal_activities_select"",
+                    ""with_check"": null
+                }
+            ],
+            ""triggers"": null,
+            ""table_name"": ""deal_activities"",
+            ""constraints"": [
+                {
+                    ""name"": ""deal_activities_type_check"",
+                    ""type"": ""c"",
+                    ""definition"": ""CHECK ((type = ANY (ARRAY['note'::text, 'call'::text, 'mail'::text, 'task'::text, 'meeting'::text, 'system'::text])))""
+                },
+                {
+                    ""name"": ""deal_activities_deal_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (deal_id) REFERENCES deals(id) ON DELETE CASCADE""
+                },
+                {
+                    ""name"": ""deal_activities_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": true
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": ""gen_random_uuid()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""company_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""kind"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""title"",
+                    ""default"": ""''::text"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""stage"",
+                    ""default"": ""'ヒアリング'::text"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""start_date"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""date"",
+                    ""data_type"": ""date""
+                },
+                {
+                    ""pos"": 7,
+                    ""name"": ""due_date"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""date"",
+                    ""data_type"": ""date""
+                },
+                {
+                    ""pos"": 8,
+                    ""name"": ""amount"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""int4"",
+                    ""data_type"": ""integer""
+                },
+                {
+                    ""pos"": 9,
+                    ""name"": ""probability"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""int4"",
+                    ""data_type"": ""integer""
+                },
+                {
+                    ""pos"": 10,
+                    ""name"": ""memo"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 11,
+                    ""name"": ""is_won"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""bool"",
+                    ""data_type"": ""boolean""
+                },
+                {
+                    ""pos"": 12,
+                    ""name"": ""owner_user_id"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 13,
+                    ""name"": ""created_by"",
+                    ""default"": ""auth.uid()"",
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 14,
+                    ""name"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 15,
+                    ""name"": ""updated_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""deals_company_id_idx"",
+                    ""definition"": ""CREATE INDEX deals_company_id_idx ON public.deals USING btree (company_id)""
+                },
+                {
+                    ""name"": ""deals_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX deals_pkey ON public.deals USING btree (id)""
+                },
+                {
+                    ""name"": ""deals_updated_at_idx"",
+                    ""definition"": ""CREATE INDEX deals_updated_at_idx ON public.deals USING btree (updated_at DESC)""
+                }
+            ],
+            ""policies"": [
+                {
+                    ""cmd"": ""DELETE"",
+                    ""qual"": ""true"",
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""deals_delete"",
+                    ""with_check"": null
+                },
+                {
+                    ""cmd"": ""INSERT"",
+                    ""qual"": null,
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""deals_insert"",
+                    ""with_check"": ""true""
+                },
+                {
+                    ""cmd"": ""SELECT"",
+                    ""qual"": ""true"",
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""deals_select"",
+                    ""with_check"": null
+                },
+                {
+                    ""cmd"": ""UPDATE"",
+                    ""qual"": ""true"",
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""deals_update"",
+                    ""with_check"": ""true""
+                }
+            ],
+            ""triggers"": [
+                {
+                    ""name"": ""trg_deals_updated_at"",
+                    ""event"": ""UPDATE"",
+                    ""timing"": ""BEFORE"",
+                    ""statement"": ""EXECUTE FUNCTION set_updated_at()""
+                }
+            ],
+            ""table_name"": ""deals"",
+            ""constraints"": [
+                {
+                    ""name"": ""deals_kind_check"",
+                    ""type"": ""c"",
+                    ""definition"": ""CHECK ((kind = ANY (ARRAY['new'::text, 'existing'::text])))""
+                },
+                {
+                    ""name"": ""deals_probability_check"",
+                    ""type"": ""c"",
+                    ""definition"": ""CHECK (((probability IS NULL) OR ((probability >= 0) AND (probability <= 100))))""
+                },
+                {
+                    ""name"": ""deals_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": false
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": ""nextval('events_id_seq'::regclass)"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""int8"",
+                    ""data_type"": ""bigint""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""type"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""at"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""job_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""site_key"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""company_id"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 7,
+                    ""name"": ""user_id"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""events_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX events_pkey ON public.events USING btree (id)""
+                }
+            ],
+            ""policies"": [
+                {
+                    ""cmd"": ""INSERT"",
+                    ""qual"": null,
+                    ""roles"": [
+                        ""public""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""members insert events"",
+                    ""with_check"": ""(EXISTS ( SELECT 1\n   FROM workspace_members wm\n  WHERE (wm.user_id = auth.uid())))""
+                },
+                {
+                    ""cmd"": ""SELECT"",
+                    ""qual"": ""(EXISTS ( SELECT 1\n   FROM workspace_members wm\n  WHERE (wm.user_id = auth.uid())))"",
+                    ""roles"": [
+                        ""public""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""members read events"",
+                    ""with_check"": null
+                }
+            ],
+            ""triggers"": null,
+            ""table_name"": ""events"",
+            ""constraints"": [
+                {
+                    ""name"": ""events_user_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (user_id) REFERENCES auth.users(id)""
+                },
+                {
+                    ""name"": ""events_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": false
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""user_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""gmail_email"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""refresh_token"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""scope"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""updated_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""gmail_accounts_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX gmail_accounts_pkey ON public.gmail_accounts USING btree (user_id)""
+                }
+            ],
+            ""policies"": null,
+            ""triggers"": null,
+            ""table_name"": ""gmail_accounts"",
+            ""constraints"": [
+                {
+                    ""name"": ""gmail_accounts_user_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE""
+                },
+                {
+                    ""name"": ""gmail_accounts_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (user_id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": false
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""email"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""access_token"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""refresh_token"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""scope"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""expires_at"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 7,
+                    ""name"": ""updated_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""gmail_connections_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX gmail_connections_pkey ON public.gmail_connections USING btree (id)""
+                }
+            ],
+            ""policies"": null,
+            ""triggers"": null,
+            ""table_name"": ""gmail_connections"",
+            ""constraints"": [
+                {
+                    ""name"": ""gmail_connections_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": false
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": ""gen_random_uuid()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""user_id"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""gmail_message_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""thread_id"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""from_email"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""subject"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 7,
+                    ""name"": ""snippet"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 8,
+                    ""name"": ""received_at"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 9,
+                    ""name"": ""site_key"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 10,
+                    ""name"": ""status"",
+                    ""default"": ""'new'::text"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 11,
+                    ""name"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 12,
+                    ""name"": ""updated_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 13,
+                    ""name"": ""to_email"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 14,
+                    ""name"": ""company_id"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 15,
+                    ""name"": ""job_id"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 16,
+                    ""name"": ""mail_type"",
+                    ""default"": ""'application'::text"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""gmail_inbox_messages_company_id_idx"",
+                    ""definition"": ""CREATE INDEX gmail_inbox_messages_company_id_idx ON public.gmail_inbox_messages USING btree (company_id)""
+                },
+                {
+                    ""name"": ""gmail_inbox_messages_gmail_message_id_key"",
+                    ""definition"": ""CREATE UNIQUE INDEX gmail_inbox_messages_gmail_message_id_key ON public.gmail_inbox_messages USING btree (gmail_message_id)""
+                },
+                {
+                    ""name"": ""gmail_inbox_messages_job_id_idx"",
+                    ""definition"": ""CREATE INDEX gmail_inbox_messages_job_id_idx ON public.gmail_inbox_messages USING btree (job_id)""
+                },
+                {
+                    ""name"": ""gmail_inbox_messages_mail_type_idx"",
+                    ""definition"": ""CREATE INDEX gmail_inbox_messages_mail_type_idx ON public.gmail_inbox_messages USING btree (mail_type)""
+                },
+                {
+                    ""name"": ""gmail_inbox_messages_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX gmail_inbox_messages_pkey ON public.gmail_inbox_messages USING btree (id)""
+                },
+                {
+                    ""name"": ""gmail_inbox_messages_to_email_idx"",
+                    ""definition"": ""CREATE INDEX gmail_inbox_messages_to_email_idx ON public.gmail_inbox_messages USING btree (to_email)""
+                }
+            ],
+            ""policies"": null,
+            ""triggers"": null,
+            ""table_name"": ""gmail_inbox_messages"",
+            ""constraints"": [
+                {
+                    ""name"": ""gmail_inbox_messages_mail_type_check"",
+                    ""type"": ""c"",
+                    ""definition"": ""CHECK ((mail_type = ANY (ARRAY['application'::text, 'non_application'::text])))""
+                },
+                {
+                    ""name"": ""gmail_inbox_messages_user_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (user_id) REFERENCES auth.users(id)""
+                },
+                {
+                    ""name"": ""gmail_inbox_messages_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                },
+                {
+                    ""name"": ""gmail_inbox_messages_gmail_message_id_key"",
+                    ""type"": ""u"",
+                    ""definition"": ""UNIQUE (gmail_message_id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": false
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""thread_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""to_email"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""from_email"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""subject"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""snippet"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 7,
+                    ""name"": ""internal_date"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 8,
+                    ""name"": ""payload"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""jsonb"",
+                    ""data_type"": ""jsonb""
+                },
+                {
+                    ""pos"": 9,
+                    ""name"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""gmail_messages_internal_date_idx"",
+                    ""definition"": ""CREATE INDEX gmail_messages_internal_date_idx ON public.gmail_messages USING btree (internal_date DESC)""
+                },
+                {
+                    ""name"": ""gmail_messages_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX gmail_messages_pkey ON public.gmail_messages USING btree (id)""
+                }
+            ],
+            ""policies"": null,
+            ""triggers"": null,
+            ""table_name"": ""gmail_messages"",
+            ""constraints"": [
+                {
+                    ""name"": ""gmail_messages_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": false
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": ""gen_random_uuid()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""job_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""company_id"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""archived_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""counter_started_at"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""counter_ended_at"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 7,
+                    ""name"": ""applicants_count"",
+                    ""default"": ""0"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""int4"",
+                    ""data_type"": ""integer""
+                },
+                {
+                    ""pos"": 8,
+                    ""name"": ""days_elapsed"",
+                    ""default"": ""0"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""int4"",
+                    ""data_type"": ""integer""
+                },
+                {
+                    ""pos"": 9,
+                    ""name"": ""job_snapshot"",
+                    ""default"": ""'{}'::jsonb"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""jsonb"",
+                    ""data_type"": ""jsonb""
+                },
+                {
+                    ""pos"": 10,
+                    ""name"": ""archive_title"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 11,
+                    ""name"": ""cycle_days"",
+                    ""default"": ""0"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""int4"",
+                    ""data_type"": ""integer""
+                },
+                {
+                    ""pos"": 12,
+                    ""name"": ""cycle_applicants_count"",
+                    ""default"": ""0"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""int4"",
+                    ""data_type"": ""integer""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""job_archives_job_id_archived_at_idx"",
+                    ""definition"": ""CREATE INDEX job_archives_job_id_archived_at_idx ON public.job_archives USING btree (job_id, archived_at DESC)""
+                },
+                {
+                    ""name"": ""job_archives_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX job_archives_pkey ON public.job_archives USING btree (id)""
+                }
+            ],
+            ""policies"": null,
+            ""triggers"": null,
+            ""table_name"": ""job_archives"",
+            ""constraints"": [
+                {
+                    ""name"": ""job_archives_job_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE""
+                },
+                {
+                    ""name"": ""job_archives_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": true
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": ""gen_random_uuid()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""job_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""company_id"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""version"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""int4"",
+                    ""data_type"": ""integer""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""changed_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""changed_by"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 7,
+                    ""name"": ""change_note"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 8,
+                    ""name"": ""snapshot"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""jsonb"",
+                    ""data_type"": ""jsonb""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""job_revisions_job_id_changed_at_idx"",
+                    ""definition"": ""CREATE INDEX job_revisions_job_id_changed_at_idx ON public.job_revisions USING btree (job_id, changed_at DESC)""
+                },
+                {
+                    ""name"": ""job_revisions_job_id_version_uq"",
+                    ""definition"": ""CREATE UNIQUE INDEX job_revisions_job_id_version_uq ON public.job_revisions USING btree (job_id, version)""
+                },
+                {
+                    ""name"": ""job_revisions_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX job_revisions_pkey ON public.job_revisions USING btree (id)""
+                }
+            ],
+            ""policies"": [
+                {
+                    ""cmd"": ""ALL"",
+                    ""qual"": ""(EXISTS ( SELECT 1\n   FROM workspace_members wm\n  WHERE (wm.user_id = auth.uid())))"",
+                    ""roles"": [
+                        ""public""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""members full access job_revisions"",
+                    ""with_check"": ""(EXISTS ( SELECT 1\n   FROM workspace_members wm\n  WHERE (wm.user_id = auth.uid())))""
+                }
+            ],
+            ""triggers"": null,
+            ""table_name"": ""job_revisions"",
+            ""constraints"": [
+                {
+                    ""name"": ""job_revisions_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": false
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""company_id"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""company_name"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""job_title"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""employment_type"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""site_status"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""jsonb"",
+                    ""data_type"": ""jsonb""
+                },
+                {
+                    ""pos"": 7,
+                    ""name"": ""created_at"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 8,
+                    ""name"": ""updated_at"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 9,
+                    ""name"": ""current_revision_id"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 10,
+                    ""name"": ""applicants_count"",
+                    ""default"": ""0"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""int4"",
+                    ""data_type"": ""integer""
+                },
+                {
+                    ""pos"": 11,
+                    ""name"": ""counter_started_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 12,
+                    ""name"": ""cycle_started_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 13,
+                    ""name"": ""cycle_applicants_count"",
+                    ""default"": ""0"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""int4"",
+                    ""data_type"": ""integer""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""jobs_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX jobs_pkey ON public.jobs USING btree (id)""
+                }
+            ],
+            ""policies"": [
+                {
+                    ""cmd"": ""ALL"",
+                    ""qual"": ""(EXISTS ( SELECT 1\n   FROM workspace_members wm\n  WHERE (wm.user_id = auth.uid())))"",
+                    ""roles"": [
+                        ""public""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""members full access jobs"",
+                    ""with_check"": ""(EXISTS ( SELECT 1\n   FROM workspace_members wm\n  WHERE (wm.user_id = auth.uid())))""
+                }
+            ],
+            ""triggers"": null,
+            ""table_name"": ""jobs"",
+            ""constraints"": [
+                {
+                    ""name"": ""jobs_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": true
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""job_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""site_key"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""assignee_user_id"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""deadline"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""date"",
+                    ""data_type"": ""date""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""note"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 7,
+                    ""name"": ""updated_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 8,
+                    ""name"": ""created_by"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""idx_wq_assignments_assignee"",
+                    ""definition"": ""CREATE INDEX idx_wq_assignments_assignee ON public.work_queue_assignments USING btree (assignee_user_id)""
+                },
+                {
+                    ""name"": ""idx_wq_assignments_deadline"",
+                    ""definition"": ""CREATE INDEX idx_wq_assignments_deadline ON public.work_queue_assignments USING btree (deadline)""
+                },
+                {
+                    ""name"": ""work_queue_assignments_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX work_queue_assignments_pkey ON public.work_queue_assignments USING btree (job_id, site_key)""
+                }
+            ],
+            ""policies"": [
+                {
+                    ""cmd"": ""INSERT"",
+                    ""qual"": null,
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""Authenticated users can insert assignments"",
+                    ""with_check"": ""true""
+                },
+                {
+                    ""cmd"": ""UPDATE"",
+                    ""qual"": ""true"",
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""Authenticated users can update assignments"",
+                    ""with_check"": null
+                },
+                {
+                    ""cmd"": ""SELECT"",
+                    ""qual"": ""true"",
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""Authenticated users can view all assignments"",
+                    ""with_check"": null
+                }
+            ],
+            ""triggers"": [
+                {
+                    ""name"": ""update_work_queue_assignments_updated_at"",
+                    ""event"": ""UPDATE"",
+                    ""timing"": ""BEFORE"",
+                    ""statement"": ""EXECUTE FUNCTION update_updated_at_column()""
+                }
+            ],
+            ""table_name"": ""work_queue_assignments"",
+            ""constraints"": [
+                {
+                    ""name"": ""work_queue_assignments_assignee_user_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (assignee_user_id) REFERENCES auth.users(id) ON DELETE SET NULL""
+                },
+                {
+                    ""name"": ""work_queue_assignments_created_by_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (created_by) REFERENCES auth.users(id)""
+                },
+                {
+                    ""name"": ""work_queue_assignments_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (job_id, site_key)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": true
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": ""gen_random_uuid()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""job_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""site_key"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""user_id"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""event_type"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""old_value"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 7,
+                    ""name"": ""new_value"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 8,
+                    ""name"": ""occurred_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""idx_wq_events_job_site"",
+                    ""definition"": ""CREATE INDEX idx_wq_events_job_site ON public.work_queue_events USING btree (job_id, site_key)""
+                },
+                {
+                    ""name"": ""idx_wq_events_occurred"",
+                    ""definition"": ""CREATE INDEX idx_wq_events_occurred ON public.work_queue_events USING btree (occurred_at DESC)""
+                },
+                {
+                    ""name"": ""idx_wq_events_type"",
+                    ""definition"": ""CREATE INDEX idx_wq_events_type ON public.work_queue_events USING btree (event_type)""
+                },
+                {
+                    ""name"": ""idx_wq_events_user"",
+                    ""definition"": ""CREATE INDEX idx_wq_events_user ON public.work_queue_events USING btree (user_id)""
+                },
+                {
+                    ""name"": ""work_queue_events_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX work_queue_events_pkey ON public.work_queue_events USING btree (id)""
+                }
+            ],
+            ""policies"": [
+                {
+                    ""cmd"": ""INSERT"",
+                    ""qual"": null,
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""Authenticated users can insert events"",
+                    ""with_check"": ""true""
+                },
+                {
+                    ""cmd"": ""SELECT"",
+                    ""qual"": ""true"",
+                    ""roles"": [
+                        ""authenticated""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""Authenticated users can view all events"",
+                    ""with_check"": null
+                }
+            ],
+            ""triggers"": null,
+            ""table_name"": ""work_queue_events"",
+            ""constraints"": [
+                {
+                    ""name"": ""work_queue_events_user_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (user_id) REFERENCES auth.users(id)""
+                },
+                {
+                    ""name"": ""work_queue_events_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": true
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""id"",
+                    ""default"": ""gen_random_uuid()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""title"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""task_type"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""company_id"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""assignee_user_id"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""deadline"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""date"",
+                    ""data_type"": ""date""
+                },
+                {
+                    ""pos"": 7,
+                    ""name"": ""note"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 8,
+                    ""name"": ""status"",
+                    ""default"": ""'pending'::text"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 9,
+                    ""name"": ""created_by"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 10,
+                    ""name"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 11,
+                    ""name"": ""updated_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 12,
+                    ""name"": ""preferred_date"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""date"",
+                    ""data_type"": ""date""
+                },
+                {
+                    ""pos"": 13,
+                    ""name"": ""assignee_user_ids"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""_text"",
+                    ""data_type"": ""ARRAY""
+                },
+                {
+                    ""pos"": 14,
+                    ""name"": ""is_acknowledged"",
+                    ""default"": ""false"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""bool"",
+                    ""data_type"": ""boolean""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""idx_work_queue_items_assignee"",
+                    ""definition"": ""CREATE INDEX idx_work_queue_items_assignee ON public.work_queue_items USING btree (assignee_user_id)""
+                },
+                {
+                    ""name"": ""idx_work_queue_items_assignee_user_ids"",
+                    ""definition"": ""CREATE INDEX idx_work_queue_items_assignee_user_ids ON public.work_queue_items USING gin (assignee_user_ids)""
+                },
+                {
+                    ""name"": ""idx_work_queue_items_company"",
+                    ""definition"": ""CREATE INDEX idx_work_queue_items_company ON public.work_queue_items USING btree (company_id)""
+                },
+                {
+                    ""name"": ""idx_work_queue_items_is_acknowledged"",
+                    ""definition"": ""CREATE INDEX idx_work_queue_items_is_acknowledged ON public.work_queue_items USING btree (is_acknowledged)""
+                },
+                {
+                    ""name"": ""idx_work_queue_items_preferred_date"",
+                    ""definition"": ""CREATE INDEX idx_work_queue_items_preferred_date ON public.work_queue_items USING btree (preferred_date)""
+                },
+                {
+                    ""name"": ""idx_work_queue_items_status"",
+                    ""definition"": ""CREATE INDEX idx_work_queue_items_status ON public.work_queue_items USING btree (status)""
+                },
+                {
+                    ""name"": ""idx_work_queue_items_task_type"",
+                    ""definition"": ""CREATE INDEX idx_work_queue_items_task_type ON public.work_queue_items USING btree (task_type)""
+                },
+                {
+                    ""name"": ""work_queue_items_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX work_queue_items_pkey ON public.work_queue_items USING btree (id)""
+                }
+            ],
+            ""policies"": [
+                {
+                    ""cmd"": ""ALL"",
+                    ""qual"": ""(auth.role() = 'authenticated'::text)"",
+                    ""roles"": [
+                        ""public""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""Enable all for authenticated users"",
+                    ""with_check"": null
+                }
+            ],
+            ""triggers"": [
+                {
+                    ""name"": ""update_work_queue_items_updated_at"",
+                    ""event"": ""UPDATE"",
+                    ""timing"": ""BEFORE"",
+                    ""statement"": ""EXECUTE FUNCTION update_updated_at_column()""
+                }
+            ],
+            ""table_name"": ""work_queue_items"",
+            ""constraints"": [
+                {
+                    ""name"": ""work_queue_items_status_check"",
+                    ""type"": ""c"",
+                    ""definition"": ""CHECK ((status = ANY (ARRAY['pending'::text, 'in_progress'::text, 'completed'::text])))""
+                },
+                {
+                    ""name"": ""work_queue_items_task_type_check"",
+                    ""type"": ""c"",
+                    ""definition"": ""CHECK ((task_type = ANY (ARRAY['meeting'::text, 'proposal'::text, 'job_posting'::text, 'update'::text, 'follow_up'::text, 'document'::text, 'other'::text])))""
+                },
+                {
+                    ""name"": ""work_queue_items_assignee_user_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (assignee_user_id) REFERENCES auth.users(id) ON DELETE SET NULL""
+                },
+                {
+                    ""name"": ""work_queue_items_company_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE CASCADE""
+                },
+                {
+                    ""name"": ""work_queue_items_created_by_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (created_by) REFERENCES auth.users(id)""
+                },
+                {
+                    ""name"": ""work_queue_items_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                }
+            ]
+        },
+        {
+            ""rls"": {
+                ""forced"": false,
+                ""enabled"": true
+            },
+            ""columns"": [
+                {
+                    ""pos"": 1,
+                    ""name"": ""user_id"",
+                    ""default"": null,
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""uuid"",
+                    ""data_type"": ""uuid""
+                },
+                {
+                    ""pos"": 2,
+                    ""name"": ""role"",
+                    ""default"": ""'member'::text"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 3,
+                    ""name"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 4,
+                    ""name"": ""presence_status"",
+                    ""default"": ""'working'::text"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 5,
+                    ""name"": ""presence_updated_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""NO"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                },
+                {
+                    ""pos"": 6,
+                    ""name"": ""display_name"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 7,
+                    ""name"": ""avatar_url"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 8,
+                    ""name"": ""bio"",
+                    ""default"": null,
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""text"",
+                    ""data_type"": ""text""
+                },
+                {
+                    ""pos"": 9,
+                    ""name"": ""updated_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": ""YES"",
+                    ""udt_name"": ""timestamptz"",
+                    ""data_type"": ""timestamp with time zone""
+                }
+            ],
+            ""indexes"": [
+                {
+                    ""name"": ""workspace_members_pkey"",
+                    ""definition"": ""CREATE UNIQUE INDEX workspace_members_pkey ON public.workspace_members USING btree (user_id)""
+                }
+            ],
+            ""policies"": [
+                {
+                    ""cmd"": ""SELECT"",
+                    ""qual"": ""(auth.uid() = user_id)"",
+                    ""roles"": [
+                        ""public""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""members can read"",
+                    ""with_check"": null
+                },
+                {
+                    ""cmd"": ""SELECT"",
+                    ""qual"": ""is_workspace_member()"",
+                    ""roles"": [
+                        ""public""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""members can read all members"",
+                    ""with_check"": null
+                },
+                {
+                    ""cmd"": ""SELECT"",
+                    ""qual"": ""(auth.uid() = user_id)"",
+                    ""roles"": [
+                        ""public""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""members can read self"",
+                    ""with_check"": null
+                },
+                {
+                    ""cmd"": ""UPDATE"",
+                    ""qual"": ""(auth.uid() = user_id)"",
+                    ""roles"": [
+                        ""public""
+                    ],
+                    ""permissive"": ""PERMISSIVE"",
+                    ""policyname"": ""members can update self presence"",
+                    ""with_check"": ""(auth.uid() = user_id)""
+                }
+            ],
+            ""triggers"": [
+                {
+                    ""name"": ""update_workspace_members_updated_at"",
+                    ""event"": ""UPDATE"",
+                    ""timing"": ""BEFORE"",
+                    ""statement"": ""EXECUTE FUNCTION update_updated_at_column()""
+                }
+            ],
+            ""table_name"": ""workspace_members"",
+            ""constraints"": [
+                {
+                    ""name"": ""workspace_members_user_id_fkey"",
+                    ""type"": ""f"",
+                    ""definition"": ""FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE""
+                },
+                {
+                    ""name"": ""workspace_members_pkey"",
+                    ""type"": ""p"",
+                    ""definition"": ""PRIMARY KEY (user_id)""
+                }
+            ]
+        }
+    ],
+    ""generated_at"": ""2026-01-22T09:28:29.37344+00:00""
+}"
