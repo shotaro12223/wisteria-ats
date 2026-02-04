@@ -63,8 +63,49 @@ export async function sendClientNotification(
     return { success: false, totalSent: 0, totalSuccess: 0, totalFailed: 0 };
   }
 
+  // Save to client_notifications table FIRST (bell icon, independent of push)
+  if (options.saveToDb !== false) {
+    try {
+      if (target.type === "company") {
+        await supabase.from("client_notifications").insert({
+          company_id: target.companyId,
+          client_user_id: null,
+          title: options.title,
+          body: options.body,
+          url: options.url || null,
+          type: options.type || "info",
+          reference_id: options.referenceId || null,
+          is_read: false,
+          created_at: new Date().toISOString(),
+        });
+      } else if (target.type === "client_user") {
+        const { data: cu } = await supabase
+          .from("client_users")
+          .select("company_id")
+          .eq("id", target.clientUserId)
+          .single();
+
+        if (cu) {
+          await supabase.from("client_notifications").insert({
+            company_id: cu.company_id,
+            client_user_id: target.clientUserId,
+            title: options.title,
+            body: options.body,
+            url: options.url || null,
+            type: options.type || "info",
+            reference_id: options.referenceId || null,
+            is_read: false,
+            created_at: new Date().toISOString(),
+          });
+        }
+      }
+    } catch (dbErr) {
+      console.error("[Notification] client_notifications insert error:", dbErr);
+    }
+  }
+
   if (!subscriptions || subscriptions.length === 0) {
-    console.log("[Notification] No active subscriptions found");
+    console.log("[Notification] No active push subscriptions found");
     return { success: true, totalSent: 0, totalSuccess: 0, totalFailed: 0 };
   }
 
@@ -113,44 +154,6 @@ export async function sendClientNotification(
     total_failed: result.totalFailed,
     sent_at: new Date().toISOString(),
   });
-
-  // Save to client_notifications table for notification center
-  if (options.saveToDb !== false) {
-    if (target.type === "company") {
-      await supabase.from("client_notifications").insert({
-        company_id: target.companyId,
-        client_user_id: null,
-        title: options.title,
-        body: options.body,
-        url: options.url || null,
-        type: options.type || "info",
-        reference_id: options.referenceId || null,
-        is_read: false,
-        created_at: new Date().toISOString(),
-      });
-    } else if (target.type === "client_user") {
-      // Get the company_id for this client_user
-      const { data: clientUser } = await supabase
-        .from("client_users")
-        .select("company_id")
-        .eq("id", target.clientUserId)
-        .single();
-
-      if (clientUser) {
-        await supabase.from("client_notifications").insert({
-          company_id: clientUser.company_id,
-          client_user_id: target.clientUserId,
-          title: options.title,
-          body: options.body,
-          url: options.url || null,
-          type: options.type || "info",
-          reference_id: options.referenceId || null,
-          is_read: false,
-          created_at: new Date().toISOString(),
-        });
-      }
-    }
-  }
 
   return {
     success: true,
