@@ -67,7 +67,11 @@ export default function ClientSupportPage() {
       const data = await res.json();
 
       if (!data.ok) {
-        alert(data.error?.message || "送信に失敗しました");
+        if (res.status === 403) {
+          alert("この機能はクライアントユーザー専用です。管理者アカウントではご利用いただけません。");
+        } else {
+          alert(data.error?.message || "送信に失敗しました");
+        }
         setSubmitting(false);
         return;
       }
@@ -108,7 +112,11 @@ export default function ClientSupportPage() {
         setMessages((prev) => [...prev, data.data]);
         setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
       } else {
-        alert(data.error?.message || "送信に失敗しました");
+        if (res.status === 403) {
+          alert("この機能はクライアントユーザー専用です。管理者アカウントではご利用いただけません。");
+        } else {
+          alert(data.error?.message || "送信に失敗しました");
+        }
       }
     } catch {
       alert("送信に失敗しました");
