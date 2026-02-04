@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
   // Verify admin
   const { data: member } = await supabaseAdmin
     .from("workspace_members")
-    .select("role")
+    .select("role, display_name")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
     .insert({
       company_id: companyId,
       user_id: user.id,
-      user_name: user.email || "Wisteria サポート",
+      user_name: member.display_name || "Wisteria サポート",
       message: message.trim(),
       is_from_client: false,
       created_at: now,

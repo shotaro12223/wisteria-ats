@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
   // Get client user info
   const { data: clientUser, error: clientUserError } = await supabase
     .from("client_users")
-    .select("id, company_id, display_name, is_active")
+    .select("id, company_id, name, display_name, is_active")
     .eq("user_id", user.id)
     .single();
 
@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
     .insert({
       company_id: clientUser.company_id,
       user_id: user.id,
-      user_name: clientUser.display_name || user.email || null,
+      user_name: clientUser.name || clientUser.display_name || user.email || null,
       message: message.trim(),
       is_from_client: true,
       created_at: now,
