@@ -1,5 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { supabaseRoute } from "@/lib/supabaseRoute";
+import { notifyMeetingDatesProposed } from "@/lib/sendClientNotification";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export const dynamic = "force-dynamic";
 
@@ -177,6 +179,54 @@ export async function PATCH(
       { ok: false, error: { message: updateError.message } },
       { status: 500 }
     );
+  }
+
+  // 通知送信（候補日提示 or ステータス変更時）
+  try {
+    const clientUserId = existingRequest.client_user_id;
+    const subject = existingRequest.subject || "打ち合わせ";
+    const finalStatus = updatedRequest.status;
+
+    if (clientUserId) {
+      if (finalStatus === "dates_proposed" && proposed_dates) {
+        await notifyMeetingDatesProposed(clientUserId, subject);
+      } else if (finalStatus === "confirmed") {
+        const { sendClientNotification } = await import("@/lib/sendClientNotification");
+        const { data: clientUser } = await supabaseAdmin
+          .from("client_users")
+          .select("company_id")
+          .eq("id", clientUserId)
+          .single();
+
+        if (clientUser) {
+          await sendClientNotification(
+            { type: "client_user", clientUserId },
+            {
+              title: "打ち合わせ日程確定",
+              body: `「${subject}」の日程が確定しました。`,
+              url: "/client/meetings",
+              tag: "meeting-confirmed",
+              type: "interview",
+            }
+          );
+        }
+      } else if (finalStatus === "cancelled") {
+        const { sendClientNotification } = await import("@/lib/sendClientNotification");
+        await sendClientNotification(
+          { type: "client_user", clientUserId },
+          {
+            title: "打ち合わせキャンセル",
+            body: `「${subject}」がキャンセルされました。`,
+            url: "/client/meetings",
+            tag: "meeting-cancelled",
+            type: "info",
+          }
+        );
+      }
+    }
+  } catch (notifyErr) {
+    console.error("[meeting-requests] Notification error:", notifyErr);
+    // 通知失敗でもレスポンスは返す
   }
 
   return NextResponse.json({ ok: true, data: updatedRequest });

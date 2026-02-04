@@ -156,6 +156,8 @@ function normalizeProfile(profile: any, company: CompanyRow | null) {
     campaign_applied: "",
     first_meeting_date: "",
 
+    owner_name: "",
+
     // 推奨（レコードとして持つと強い）
     deal_stage: "",
     mrr: "",
