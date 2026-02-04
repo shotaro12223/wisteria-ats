@@ -24,6 +24,7 @@ export async function GET(
       .from("deals")
       .select("id, title, stage, start_date, due_date, amount, probability, created_at, updated_at")
       .eq("company_id", id)
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
 
     if (dealsError) {

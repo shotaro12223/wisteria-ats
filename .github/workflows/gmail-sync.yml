@@ -1,0 +1,32 @@
+name: Gmail Sync Hourly
+
+on:
+  schedule:
+    # 毎時0分に実行 (UTC)
+    - cron: '0 * * * *'
+  workflow_dispatch: # 手動実行も可能
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Gmail Sync API
+        run: |
+          curl -X GET "${{ secrets.VERCEL_URL }}/api/cron/gmail-sync" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -w "\nHTTP Status: %{http_code}\n" \
+            -o response.json
+
+          echo "Response:"
+          cat response.json
+
+          # Check if sync was successful
+          if grep -q '"ok":true' response.json; then
+            echo "✅ Gmail sync completed successfully"
+            exit 0
+          else
+            echo "❌ Gmail sync failed"
+            cat response.json
+            exit 1
+          fi

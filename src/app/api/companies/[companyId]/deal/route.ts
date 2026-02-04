@@ -59,6 +59,7 @@ export async function GET(
       .select("*")
       .eq("company_id", id)
       .eq("kind", "existing")
+      .is("deleted_at", null)
       .order("created_at", { ascending: true })
       .limit(1);
 

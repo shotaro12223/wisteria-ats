@@ -157,7 +157,9 @@ export async function syncGmailMessages(
     if (labelName) {
       labelId = await getLabelId(accessToken, labelName);
       if (!labelId) {
-        console.warn(`[Sync] Label "${labelName}" not found, syncing all messages`);
+        console.warn(`[Sync] Label "${labelName}" not found, skipping sync`);
+        if (logId) await completeSyncLog(logId, { status: "success", messagesFetched: 0, messagesInserted: 0 });
+        return { ok: true, messagesFetched: 0, messagesInserted: 0, syncType: "full" as const };
       }
     }
 
@@ -510,7 +512,7 @@ async function syncMessagesToDb(args: {
 
   const { error } = await supabaseAdmin
     .from("gmail_inbox_messages")
-    .upsert(inboxRows, { onConflict: "gmail_message_id,company_id" });
+    .upsert(inboxRows, { onConflict: "gmail_message_id" });
 
   if (error) {
     throw new Error(`gmail_inbox_messages upsert failed: ${error.message}`);

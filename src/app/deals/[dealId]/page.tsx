@@ -398,6 +398,34 @@ export default function DealDetailPage() {
     }
   }
 
+  async function saveStage(newStage: string) {
+    if (!dealId) return;
+    setSaveStatus("saving");
+    setSaveError("");
+    try {
+      const stageToSave = normalizeStageForMode(newStage, mode);
+      const res = await fetch(`/api/deals/${encodeURIComponent(dealId)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({ stage: stageToSave }),
+      });
+      const text = await res.text();
+      const json = (text ? JSON.parse(text) : { ok: false, error: { message: "Empty response" } }) as DealPatchRes;
+      if (!res.ok || !json.ok) {
+        throw new Error(!json.ok ? json.error.message : `save failed (${res.status})`);
+      }
+      setDeal(json.deal);
+      suppressDirtyRef.current = true;
+      baselineRef.current = snapshotKey();
+      suppressDirtyRef.current = false;
+      showSavedOnce();
+    } catch (e: any) {
+      setSaveStatus("error");
+      setSaveError(String(e?.message ?? e ?? "save failed"));
+    }
+  }
+
   async function handleQuickSave(data: {
     amount: string;
     probability: string;
@@ -773,7 +801,7 @@ export default function DealDetailPage() {
                       <button
                         key={st}
                         type="button"
-                        onClick={() => setStage(st)}
+                        onClick={() => { setStage(st); saveStage(st); }}
                         className={`relative flex-1 flex items-center justify-center text-[11px] font-semibold transition-all duration-200 ${bgClass} ${textClass} ${
                           i === 0 ? "rounded-l-xl" : ""
                         } ${isLast ? "rounded-r-xl" : ""} ${
@@ -802,7 +830,7 @@ export default function DealDetailPage() {
                     </div>
                     <div>
                       <div className="text-[9px] font-semibold text-emerald-600 dark:text-emerald-400 uppercase">月額</div>
-                      <div className="text-sm font-bold text-emerald-700 dark:text-emerald-300 tabular-nums">¥{parseInt(amount).toLocaleString()}</div>
+                      <div className="text-sm font-bold text-emerald-700 dark:text-emerald-300 tabular-nums">¥{(isNaN(parseInt(amount)) ? 0 : parseInt(amount)).toLocaleString()}</div>
                     </div>
                   </div>
                 )}
@@ -825,14 +853,14 @@ export default function DealDetailPage() {
 
                 <button
                   type="button"
-                  onClick={() => setStage(mode === "sales" ? "受注" : "完了")}
+                  onClick={() => { const st = mode === "sales" ? "受注" : "完了"; setStage(st); saveStage(st); }}
                   className="rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-400 px-4 py-2.5 text-[12px] font-bold text-white shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:scale-105 active:scale-95 transition-all"
                 >
                   {mode === "sales" ? "受注" : "完了"}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setStage(mode === "sales" ? "失注" : "中止")}
+                  onClick={() => { const st = mode === "sales" ? "失注" : "中止"; setStage(st); saveStage(st); }}
                   className="rounded-xl bg-slate-200/80 dark:bg-slate-700/60 px-3 py-2.5 text-[12px] font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-300/80 dark:hover:bg-slate-600/60 transition-all"
                 >
                   {mode === "sales" ? "失注" : "中止"}

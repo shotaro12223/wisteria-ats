@@ -47,7 +47,7 @@ export async function GET(
       return NextResponse.json({ ok: false, error: { message: "Unauthorized" } }, { status: 401 });
     }
 
-    const { data: deal, error: dealErr } = await sb.from("deals").select("*").eq("id", id).maybeSingle();
+    const { data: deal, error: dealErr } = await sb.from("deals").select("*").eq("id", id).is("deleted_at", null).maybeSingle();
 
     if (dealErr) {
       return NextResponse.json({ ok: false, error: { message: dealErr.message } }, { status: 500 });
@@ -118,7 +118,9 @@ export async function PATCH(
       return NextResponse.json({ ok: false, error: { message: "Unauthorized" } }, { status: 401 });
     }
 
-    const { data: deal, error } = await sb.from("deals").update(patch).eq("id", id).select("*").maybeSingle();
+    patch.updated_at = new Date().toISOString();
+
+    const { data: deal, error } = await sb.from("deals").update(patch).eq("id", id).is("deleted_at", null).select("*").maybeSingle();
 
     if (error) {
       return NextResponse.json({ ok: false, error: { message: error.message } }, { status: 500 });
