@@ -86,8 +86,8 @@ export default function CompanyFilterClient({ label = "会社", className }: Pro
           value={selectedCompanyId}
           onChange={(e) => setCompanyId(e.target.value)}
           className={[
-            "h-10 min-w-[240px] rounded-2xl border px-3 text-[13px] text-slate-900",
-            "bg-white shadow-sm outline-none",
+            "h-10 min-w-[240px] rounded-2xl border px-3 text-[13px] text-slate-900 dark:text-slate-100",
+            "bg-white dark:bg-slate-800 dark:border-slate-600 shadow-sm outline-none",
           ].join(" ")}
           style={{ borderColor: "var(--border)" }}
           disabled={loading}

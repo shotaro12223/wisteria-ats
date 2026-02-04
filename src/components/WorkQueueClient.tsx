@@ -359,7 +359,7 @@ export default function WorkQueueClient() {
             <label className="text-xs text-gray-600">媒体</label>
             <select
               multiple
-              className="h-24 w-48 rounded-md border px-2 py-1 text-sm"
+              className="h-24 w-48 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-2 py-1 text-sm"
               value={filters.sites}
               onChange={(e) => {
                 const selected = Array.from(e.target.selectedOptions).map((o) => o.value);

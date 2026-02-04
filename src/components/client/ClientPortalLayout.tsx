@@ -357,11 +357,16 @@ export default function ClientPortalLayout({ children }: ClientPortalLayoutProps
           setMeetingNote("");
         }, 2000);
       } else {
-        console.error("Meeting request failed:", data.error?.message);
+        if (res.status === 403) {
+          alert("この機能はクライアントユーザー専用です。管理者アカウントではご利用いただけません。");
+        } else {
+          alert(`エラー: ${data.error?.message || "不明なエラー"}`);
+        }
         setMeetingSubmitting(false);
       }
     } catch (error) {
       console.error("Meeting request error:", error);
+      alert("通信エラーが発生しました。");
       setMeetingSubmitting(false);
     }
   };

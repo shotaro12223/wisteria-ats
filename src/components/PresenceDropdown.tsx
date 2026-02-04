@@ -35,7 +35,7 @@ export default function PresenceDropdown() {
 
   return (
     <select
-      className="border rounded-md px-2 py-1 text-sm"
+      className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-md px-2 py-1 text-sm"
       value={status}
       onChange={(e) => onChange(e.target.value as Presence)}
       disabled={loading}

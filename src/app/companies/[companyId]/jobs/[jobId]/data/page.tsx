@@ -453,7 +453,7 @@ export default function JobApplicantsDataPage() {
             <div className="flex flex-wrap items-center gap-2">
               <div className="text-xs text-slate-600">フィルタ</div>
               <select
-                className="rounded-full border bg-white px-3 py-2 text-xs font-semibold text-slate-900 shadow-sm focus:outline-none"
+                className="rounded-full border dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-900 dark:text-slate-100 shadow-sm focus:outline-none"
                 style={{ borderColor: "var(--border)" }}
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value as any)}

@@ -1056,16 +1056,18 @@ export default function CompanyDealPage() {
                     time: option.time,
                     duration: 60,
                     description: option.note || "",
+                    dealId: dealId || null,
+                    companyId: companyId || null,
                   }),
                 });
 
                 const result = await response.json();
 
                 if (result.ok) {
-                  alert("Googleカレンダーに追加しました！");
+                  alert("カレンダーに追加しました！");
                 } else {
                   if (response.status === 401) {
-                    alert("Googleカレンダー連携が必要です。カレンダーページで連携してください。");
+                    alert("認証が必要です。ログインしてください。");
                   } else {
                     alert(`エラー: ${result.error?.message || "不明なエラー"}`);
                   }

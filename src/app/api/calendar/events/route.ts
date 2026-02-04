@@ -215,6 +215,50 @@ export async function GET(req: NextRequest) {
       // silent - meeting_requests might not exist
     }
 
+    // calendar_events テーブルから読み取り
+    try {
+      const { data: calEvents, error: calError } = await supabase
+        .from("calendar_events")
+        .select("id, title, date, time, duration, description, deal_id, company_id")
+        .order("date", { ascending: true });
+
+      if (!calError && calEvents) {
+        // calendar_events の company_id で未取得の会社名を取得
+        const calCompanyIds = calEvents
+          .map((e) => String(e.company_id ?? "").trim())
+          .filter((id) => id && !companyNameById.has(id));
+
+        if (calCompanyIds.length > 0) {
+          const { data: extraCompanies } = await supabase
+            .from("companies")
+            .select("id, company_name")
+            .in("id", calCompanyIds);
+
+          for (const c of extraCompanies || []) {
+            companyNameById.set(String(c.id), String(c.company_name ?? ""));
+          }
+        }
+
+        for (const ce of calEvents) {
+          const companyId = String(ce.company_id ?? "").trim();
+          const companyName = companyId ? companyNameById.get(companyId) : null;
+          const eventTitle = companyName ? `${companyName} - ${ce.title}` : ce.title;
+
+          events.push({
+            id: `cal-${ce.id}`,
+            title: eventTitle,
+            date: ce.date,
+            time: ce.time,
+            type: "meeting",
+            calendarEventId: ce.id,
+            dealId: ce.deal_id || undefined,
+          });
+        }
+      }
+    } catch {
+      // silent - calendar_events might not exist yet
+    }
+
     // 年月フィルタ（オプション）
     let filteredEvents = events;
     if (year && month) {

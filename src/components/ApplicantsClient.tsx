@@ -74,7 +74,7 @@ export default function ApplicantsIndexClient({
           <div className="flex flex-col gap-1">
             <label className="text-xs text-slate-600">状態</label>
             <select
-              className="rounded-md border px-3 py-2 text-sm"
+              className="rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm"
               style={{ borderColor: "var(--border)" }}
               value={status}
               onChange={(e) => setStatus(e.target.value)}
@@ -92,7 +92,7 @@ export default function ApplicantsIndexClient({
             <label className="text-xs text-slate-600">会社（companyId）</label>
             {companyOptions.length > 0 ? (
               <select
-                className="rounded-md border px-3 py-2 text-sm"
+                className="rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm"
                 style={{ borderColor: "var(--border)" }}
                 value={companyId}
                 onChange={(e) => setCompanyId(e.target.value)}
@@ -168,7 +168,7 @@ export default function ApplicantsIndexClient({
                         status: e.target.value as ApplicantStatus,
                       })
                     }
-                    className="border rounded px-1 py-0.5"
+                    className="border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded px-1 py-0.5"
                   >
                     <option value="NEW">新着</option>
                     <option value="DOC">書類選考</option>

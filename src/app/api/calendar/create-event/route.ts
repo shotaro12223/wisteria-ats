@@ -1,5 +1,6 @@
 // src/app/api/calendar/create-event/route.ts
 import { NextRequest, NextResponse } from "next/server";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { supabaseRoute } from "@/lib/supabaseRoute";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +11,8 @@ interface CreateEventPayload {
   time: string; // HH:MM
   duration?: number; // 分単位、デフォルト60分
   description?: string;
+  dealId?: string;
+  companyId?: string;
 }
 
 export async function POST(req: NextRequest) {
@@ -25,82 +28,51 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // カレンダー接続情報を取得
-    const { data: connection, error: connError } = await supabase
-      .from("calendar_connections")
-      .select("*")
-      .eq("id", "central")
-      .single();
+    // 認証チェック
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
-    if (connError || !connection) {
+    if (authError || !user) {
       return NextResponse.json(
-        { ok: false, error: { message: "Google Calendar not connected" } },
+        { ok: false, error: { message: "認証が必要です。ログインしてください。" } },
         { status: 401 }
       );
     }
 
-    const accessToken = connection.access_token;
+    // calendar_events テーブルに INSERT
+    const { data: event, error: insertError } = await supabaseAdmin
+      .from("calendar_events")
+      .insert({
+        title: body.title,
+        date: body.date,
+        time: body.time,
+        duration: body.duration || 60,
+        description: body.description || "",
+        deal_id: body.dealId || null,
+        company_id: body.companyId || null,
+        created_by: user.id,
+        created_at: new Date().toISOString(),
+      })
+      .select("id, title, date, time")
+      .single();
 
-    // 日時をISO形式に変換
-    const startDateTime = `${body.date}T${body.time}:00`;
-    const duration = body.duration || 60;
-    const endDate = new Date(startDateTime);
-    endDate.setMinutes(endDate.getMinutes() + duration);
-
-    // Google Calendar API でイベント作成
-    const event = {
-      summary: body.title,
-      description: body.description || "",
-      start: {
-        dateTime: new Date(startDateTime).toISOString(),
-        timeZone: "Asia/Tokyo",
-      },
-      end: {
-        dateTime: endDate.toISOString(),
-        timeZone: "Asia/Tokyo",
-      },
-    };
-
-    const calendarRes = await fetch(
-      "https://www.googleapis.com/calendar/v3/calendars/primary/events",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(event),
-      }
-    );
-
-    if (!calendarRes.ok) {
-      const errorText = await calendarRes.text();
-      console.error("Google Calendar API error:", errorText);
-
-      // アクセストークン期限切れの場合はリフレッシュを促す
-      if (calendarRes.status === 401) {
-        return NextResponse.json(
-          { ok: false, error: { message: "Access token expired. Please reconnect." } },
-          { status: 401 }
-        );
-      }
-
+    if (insertError) {
+      console.error("calendar_events insert error:", insertError);
       return NextResponse.json(
-        { ok: false, error: { message: `Calendar API error: ${calendarRes.status}` } },
+        { ok: false, error: { message: `イベント作成に失敗しました: ${insertError.message}` } },
         { status: 500 }
       );
     }
 
-    const createdEvent = await calendarRes.json();
-
     return NextResponse.json({
       ok: true,
       event: {
-        id: createdEvent.id,
-        htmlLink: createdEvent.htmlLink,
-        summary: createdEvent.summary,
-        start: createdEvent.start,
-        end: createdEvent.end,
+        id: event.id,
+        title: event.title,
+        date: event.date,
+        time: event.time,
       },
     });
   } catch (err: any) {
